@@ -15,7 +15,7 @@ public class ApplicationEndpointsTests(JobTrackerApiFactory factory) : IClassFix
     [Fact]
     public async Task Create_ThenGetById_ReturnsSavedApplication()
     {
-        var request = NewRequest() with { RemoteRegion = "Remote EU", CompensationAmount = 60000, CompensationCurrency = "eur" };
+        var request = NewRequest() with { RemoteRegion = "Remote EU", CompensationAmount = 60000, CompensationCurrency = Currency.EUR };
 
         var createResponse = await _client.PostAsJsonAsync("/api/applications", request, TestJson.Options);
 
@@ -27,7 +27,7 @@ public class ApplicationEndpointsTests(JobTrackerApiFactory factory) : IClassFix
         Assert.Equal(request.Company, fetched.Company);
         Assert.Equal(ApplicationStatus.Interested, fetched.Status);
         Assert.Equal("Remote EU", fetched.RemoteRegion);
-        Assert.Equal("EUR", fetched.CompensationCurrency);
+        Assert.Equal(Currency.EUR, fetched.CompensationCurrency);
     }
 
     [Fact]
@@ -61,6 +61,16 @@ public class ApplicationEndpointsTests(JobTrackerApiFactory factory) : IClassFix
     }
 
     [Fact]
+    public async Task Create_WithUnsupportedCurrency_ReturnsBadRequest()
+    {
+        var body = new { company = "X", roleTitle = "Y", track = "Developer", channel = "LinkedIn", employmentType = "Permanent", compensationCurrency = "XYZ" };
+
+        var response = await _client.PostAsJsonAsync("/api/applications", body);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
     public async Task GetById_Unknown_ReturnsNotFoundProblemDetails()
     {
         var response = await _client.GetAsync($"/api/applications/{Guid.NewGuid()}");
@@ -85,6 +95,66 @@ public class ApplicationEndpointsTests(JobTrackerApiFactory factory) : IClassFix
         Assert.DoesNotContain(wrongTrack.Id, ids);
         Assert.DoesNotContain(wrongStatus.Id, ids);
         Assert.All(results, a => Assert.Equal(ApplicationStatus.TechInterview, a.Status));
+    }
+
+    [Fact]
+    public async Task List_WithSearch_MatchesCompanyOrRoleCaseInsensitively()
+    {
+        var marker = Guid.NewGuid().ToString("N")[..8];
+        var byCompany = await CreateAsync(NewRequest() with { Company = $"Zeta {marker} Systems" });
+        var byRole = await CreateAsync(NewRequest() with { RoleTitle = $"Engineer {marker}" });
+        var other = await CreateAsync(NewRequest());
+
+        var results = await _client.GetFromJsonAsync<List<ApplicationSummaryResponse>>(
+            $"/api/applications?search={marker.ToUpperInvariant()}", TestJson.Options);
+
+        var ids = results!.Select(a => a.Id).ToList();
+        Assert.Contains(byCompany.Id, ids);
+        Assert.Contains(byRole.Id, ids);
+        Assert.DoesNotContain(other.Id, ids);
+    }
+
+    [Fact]
+    public async Task FollowUps_ReturnsStaleAndDueApplications_ButNotFreshOrClosedOnes()
+    {
+        var today = DateOnly.FromDateTime(DateTime.Now);
+        var stale = await CreateAsync(NewRequest() with { Status = ApplicationStatus.Applied, LastContactOn = today.AddDays(-6) });
+        var due = await CreateAsync(NewRequest() with { NextActionDescription = "Send CV", NextActionDueOn = today });
+        var fresh = await CreateAsync(NewRequest() with { Status = ApplicationStatus.Applied, LastContactOn = today.AddDays(-1) });
+        var closed = await CreateAsync(NewRequest() with { Status = ApplicationStatus.Rejected, NextActionDescription = "Old task", NextActionDueOn = today.AddDays(-3) });
+
+        var results = await _client.GetFromJsonAsync<List<FollowUpResponse>>("/api/applications/follow-ups", TestJson.Options);
+
+        var byId = results!.ToDictionary(f => f.Application.Id);
+        Assert.True(byId[stale.Id].IsStale);
+        Assert.Equal(6, byId[stale.Id].DaysSinceContact);
+        Assert.True(byId[due.Id].IsNextActionDue);
+        Assert.DoesNotContain(fresh.Id, byId.Keys);
+        Assert.DoesNotContain(closed.Id, byId.Keys);
+    }
+
+    [Fact]
+    public async Task FollowUps_CustomDays_ChangesStaleThreshold()
+    {
+        var today = DateOnly.FromDateTime(DateTime.Now);
+        var threeDaysQuiet = await CreateAsync(NewRequest() with { Status = ApplicationStatus.TechInterview, LastContactOn = today.AddDays(-3) });
+
+        var withDefault = await _client.GetFromJsonAsync<List<FollowUpResponse>>("/api/applications/follow-ups", TestJson.Options);
+        var withTwoDays = await _client.GetFromJsonAsync<List<FollowUpResponse>>("/api/applications/follow-ups?days=2", TestJson.Options);
+
+        Assert.DoesNotContain(withDefault!, f => f.Application.Id == threeDaysQuiet.Id);
+        Assert.Contains(withTwoDays!, f => f.Application.Id == threeDaysQuiet.Id);
+    }
+
+    [Theory]
+    [InlineData("0")]
+    [InlineData("366")]
+    [InlineData("abc")]
+    public async Task FollowUps_InvalidDays_ReturnsBadRequest(string days)
+    {
+        var response = await _client.GetAsync($"/api/applications/follow-ups?days={days}");
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
     [Fact]
@@ -167,6 +237,69 @@ public class ApplicationEndpointsTests(JobTrackerApiFactory factory) : IClassFix
             new AddActivityRequest(ActivityType.Note, ""), TestJson.Options);
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task SetNextAction_UpdatesAndClears()
+    {
+        var created = await CreateAsync(NewRequest());
+        var due = new DateOnly(2026, 12, 1);
+
+        var setResponse = await _client.PutAsJsonAsync($"/api/applications/{created.Id}/next-action",
+            new SetNextActionRequest("Message Dana", due), TestJson.Options);
+        var afterSet = await setResponse.Content.ReadFromJsonAsync<ApplicationDetailResponse>(TestJson.Options);
+
+        Assert.Equal(HttpStatusCode.OK, setResponse.StatusCode);
+        Assert.Equal("Message Dana", afterSet!.NextActionDescription);
+        Assert.Equal(due, afterSet.NextActionDueOn);
+
+        var clearResponse = await _client.PutAsJsonAsync($"/api/applications/{created.Id}/next-action",
+            new SetNextActionRequest(null), TestJson.Options);
+        var afterClear = await clearResponse.Content.ReadFromJsonAsync<ApplicationDetailResponse>(TestJson.Options);
+
+        Assert.Null(afterClear!.NextActionDescription);
+        Assert.Null(afterClear.NextActionDueOn);
+    }
+
+    [Fact]
+    public async Task SetNextAction_DueDateWithoutDescription_ReturnsBadRequest()
+    {
+        var created = await CreateAsync(NewRequest());
+
+        var response = await _client.PutAsJsonAsync($"/api/applications/{created.Id}/next-action",
+            new SetNextActionRequest("", new DateOnly(2026, 12, 1)), TestJson.Options);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task CompleteNextAction_LogsActivityClearsActionAndCountsAsContact()
+    {
+        var created = await CreateAsync(NewRequest() with { NextActionDescription = "Message Dana", NextActionDueOn = new DateOnly(2026, 10, 26) });
+        var date = new DateOnly(2026, 11, 9);
+
+        var response = await _client.PostAsJsonAsync($"/api/applications/{created.Id}/next-action/complete",
+            new CompleteNextActionRequest(ActivityType.MessageSent, date), TestJson.Options);
+        var completed = await response.Content.ReadFromJsonAsync<ApplicationDetailResponse>(TestJson.Options);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Null(completed!.NextActionDescription);
+        Assert.Null(completed.NextActionDueOn);
+        Assert.Equal(date, completed.LastContactOn);
+        var activity = Assert.Single(completed.Activities);
+        Assert.Equal("Done: Message Dana", activity.Text);
+        Assert.Equal(ActivityType.MessageSent, activity.Type);
+    }
+
+    [Fact]
+    public async Task CompleteNextAction_WhenNoneSet_ReturnsConflict()
+    {
+        var created = await CreateAsync(NewRequest());
+
+        var response = await _client.PostAsJsonAsync($"/api/applications/{created.Id}/next-action/complete",
+            new CompleteNextActionRequest(), TestJson.Options);
+
+        Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
     }
 
     [Fact]

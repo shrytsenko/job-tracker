@@ -22,7 +22,7 @@ public class JobTrackerDbContext(DbContextOptions<JobTrackerDbContext> options) 
             entity.Property(a => a.JobUrl).HasMaxLength(2000);
             entity.Property(a => a.RemoteRegion).HasMaxLength(100);
             entity.Property(a => a.HybridCity).HasMaxLength(100);
-            entity.Property(a => a.CompensationCurrency).HasMaxLength(3);
+            entity.Property(a => a.CompensationCurrency).HasConversion<string>().HasMaxLength(3);
             entity.Property(a => a.NextActionDescription).HasMaxLength(500);
 
             // Enums stored as text: readable in the DB file and safe if enum members are reordered.

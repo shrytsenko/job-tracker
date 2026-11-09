@@ -17,13 +17,20 @@ public static class ApplicationEndpoints
         // filter lets a failed query binding (e.g. ?status=NotAStatus) through as 200 instead of 400.
         group.MapGet("/", List)
             .DisableValidation()
-            .WithSummary("List applications, optionally filtered by status, track and channel");
+            .WithSummary("List applications, optionally filtered by status, track, channel and a company/role search");
+        group.MapGet("/follow-ups", FollowUps)
+            .DisableValidation()
+            .WithSummary("Open applications with no contact for N days (default 5) or a next action due today or earlier");
         group.MapGet("/{id:guid}", GetById).WithName("GetApplication").WithSummary("Get one application with its contacts and timeline");
         group.MapPost("/", Create).WithSummary("Create an application");
         group.MapPut("/{id:guid}", Update).WithSummary("Update an application (full replace of editable fields)");
         group.MapDelete("/{id:guid}", Delete).WithSummary("Delete an application and its timeline");
 
         group.MapPost("/{id:guid}/activities", AddActivity).WithSummary("Add a timeline entry");
+
+        group.MapPut("/{id:guid}/next-action", SetNextAction).WithSummary("Set or clear the next action (empty description clears it)");
+        group.MapPost("/{id:guid}/next-action/complete", CompleteNextAction)
+            .WithSummary("Mark the next action done: logs \"Done: …\" on the timeline and clears it");
 
         group.MapPut("/{id:guid}/contacts/{contactId:guid}", LinkContact).WithSummary("Link a contact to an application (idempotent)");
         group.MapDelete("/{id:guid}/contacts/{contactId:guid}", UnlinkContact).WithSummary("Unlink a contact from an application");
@@ -36,6 +43,7 @@ public static class ApplicationEndpoints
         ApplicationStatus? status,
         Track? track,
         Channel? channel,
+        string? search,
         CancellationToken ct)
     {
         var query = db.Applications.AsNoTracking();
@@ -44,12 +52,52 @@ public static class ApplicationEndpoints
         if (track is not null) query = query.Where(a => a.Track == track);
         if (channel is not null) query = query.Where(a => a.Channel == channel);
 
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            // LIKE rather than string.Contains: in SQLite, LIKE is case-insensitive, Contains (instr) is not.
+            var pattern = $"%{search.Trim()}%";
+            query = query.Where(a => EF.Functions.Like(a.Company, pattern) || EF.Functions.Like(a.RoleTitle, pattern));
+        }
+
         var applications = await query
             .OrderBy(a => a.Company)
             .ThenBy(a => a.RoleTitle)
             .ToListAsync(ct);
 
         return TypedResults.Ok(applications.Select(ApplicationSummaryResponse.From).ToList());
+    }
+
+    private static async Task<Results<Ok<List<FollowUpResponse>>, ValidationProblem>> FollowUps(
+        JobTrackerDbContext db, TimeProvider clock, CancellationToken ct, int days = 5)
+    {
+        if (days is < 1 or > 365)
+        {
+            return TypedResults.ValidationProblem(new Dictionary<string, string[]>
+            {
+                ["days"] = ["Must be between 1 and 365."],
+            });
+        }
+
+        var today = Today(clock);
+
+        // The rule lives on the entity (unit-tested), so it's evaluated in memory. Closed applications are
+        // filtered in SQL first; for a personal tracker the remaining set is small.
+        var closed = new[] { ApplicationStatus.Accepted, ApplicationStatus.Rejected, ApplicationStatus.Withdrawn, ApplicationStatus.NoResponse };
+        var open = await db.Applications.AsNoTracking().Where(a => !closed.Contains(a.Status)).ToListAsync(ct);
+
+        var followUps = open
+            .Where(a => a.NeedsFollowUp(today, days))
+            .OrderByDescending(a => a.IsNextActionDue(today))
+            .ThenBy(a => a.NextActionDueOn)
+            .ThenByDescending(a => a.DaysSinceContact(today))
+            .Select(a => new FollowUpResponse(
+                ApplicationSummaryResponse.From(a),
+                a.DaysSinceContact(today),
+                a.IsStale(today, days),
+                a.IsNextActionDue(today)))
+            .ToList();
+
+        return TypedResults.Ok(followUps);
     }
 
     private static async Task<Results<Ok<ApplicationDetailResponse>, NotFound>> GetById(
@@ -114,6 +162,44 @@ public static class ApplicationEndpoints
         return TypedResults.Created($"/api/applications/{id}", ActivityResponse.From(activity));
     }
 
+    private static async Task<Results<Ok<ApplicationDetailResponse>, NotFound>> SetNextAction(
+        Guid id, SetNextActionRequest request, JobTrackerDbContext db, CancellationToken ct)
+    {
+        var application = await LoadWithDetailsAsync(db, id, ct);
+        if (application is null) return TypedResults.NotFound();
+
+        application.SetNextAction(request.Description, request.DueOn);
+        await db.SaveChangesAsync(ct);
+
+        return TypedResults.Ok(ApplicationDetailResponse.From(application));
+    }
+
+    private static async Task<Results<Ok<ApplicationDetailResponse>, NotFound, ProblemHttpResult>> CompleteNextAction(
+        Guid id, CompleteNextActionRequest request, JobTrackerDbContext db, TimeProvider clock, CancellationToken ct)
+    {
+        var application = await LoadWithDetailsAsync(db, id, ct);
+        if (application is null) return TypedResults.NotFound();
+
+        if (application.NextActionDescription is null)
+        {
+            return TypedResults.Problem(
+                statusCode: StatusCodes.Status409Conflict,
+                title: "Nothing to complete",
+                detail: "This application has no next action.");
+        }
+
+        application.CompleteNextAction(request.Type, request.Date ?? Today(clock));
+        await db.SaveChangesAsync(ct);
+
+        return TypedResults.Ok(ApplicationDetailResponse.From(application));
+    }
+
+    private static Task<Application?> LoadWithDetailsAsync(JobTrackerDbContext db, Guid id, CancellationToken ct) =>
+        db.Applications
+            .Include(a => a.Contacts)
+            .Include(a => a.Activities)
+            .FirstOrDefaultAsync(a => a.Id == id, ct);
+
     private static async Task<Results<NoContent, NotFound>> LinkContact(
         Guid id, Guid contactId, JobTrackerDbContext db, CancellationToken ct)
     {
@@ -149,13 +235,12 @@ public static class ApplicationEndpoints
         application.RemoteRegion = request.RemoteRegion;
         application.HybridCity = request.HybridCity;
         application.CompensationAmount = request.CompensationAmount;
-        application.CompensationCurrency = request.CompensationCurrency?.ToUpperInvariant();
+        application.CompensationCurrency = request.CompensationCurrency;
         application.CompensationPeriod = request.CompensationPeriod;
         application.CompensationIsNet = request.CompensationIsNet;
         application.AppliedOn = request.AppliedOn;
         application.LastContactOn = request.LastContactOn;
-        application.NextActionDescription = request.NextActionDescription;
-        application.NextActionDueOn = request.NextActionDueOn;
+        application.SetNextAction(request.NextActionDescription, request.NextActionDueOn);
         application.Notes = request.Notes;
 
         if (request.Status is { } status && status != application.Status)

@@ -51,5 +51,6 @@ else
 
 app.MapApplicationEndpoints();
 app.MapContactEndpoints();
+app.MapCompanyEndpoints();
 
 app.Run();

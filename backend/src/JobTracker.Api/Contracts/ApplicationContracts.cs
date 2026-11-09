@@ -17,7 +17,7 @@ public record SaveApplicationRequest(
     [MaxLength(100)] string? RemoteRegion = null,
     [MaxLength(100)] string? HybridCity = null,
     [Range(0, 100_000_000)] decimal? CompensationAmount = null,
-    [StringLength(3, MinimumLength = 3)] string? CompensationCurrency = null,
+    Currency? CompensationCurrency = null,
     CompensationPeriod? CompensationPeriod = null,
     bool? CompensationIsNet = null,
     DateOnly? AppliedOn = null,
@@ -29,6 +29,18 @@ public record SaveApplicationRequest(
 public record AddActivityRequest(
     ActivityType Type,
     [Required, MaxLength(2000)] string Text,
+    DateOnly? Date = null);
+
+/// <summary>Sets the next action. An empty description clears it; a due date needs a description.</summary>
+public record SetNextActionRequest(
+    [MaxLength(500)] string? Description,
+    DateOnly? DueOn = null);
+
+/// <summary>Marks the next action done, logging it on the timeline as <paramref name="Type"/>.</summary>
+/// <param name="Type">Note for private tasks; MessageSent / ReplyReceived / Interview also count as contact.</param>
+/// <param name="Date">Defaults to today.</param>
+public record CompleteNextActionRequest(
+    ActivityType Type = ActivityType.Note,
     DateOnly? Date = null);
 
 public record ApplicationSummaryResponse(
@@ -61,7 +73,7 @@ public record ApplicationDetailResponse(
     string? RemoteRegion,
     string? HybridCity,
     decimal? CompensationAmount,
-    string? CompensationCurrency,
+    Currency? CompensationCurrency,
     CompensationPeriod? CompensationPeriod,
     bool? CompensationIsNet,
     DateOnly? AppliedOn,
@@ -80,6 +92,15 @@ public record ApplicationDetailResponse(
         a.Contacts.OrderBy(c => c.Name).Select(ContactSummaryResponse.From).ToList(),
         a.Activities.OrderByDescending(x => x.Date).Select(ActivityResponse.From).ToList());
 }
+
+/// <param name="DaysSinceContact">Days since last contact (or applied date); null if neither is known.</param>
+/// <param name="IsStale">In progress with no contact for at least the requested number of days.</param>
+/// <param name="IsNextActionDue">Next action is due today or overdue.</param>
+public record FollowUpResponse(
+    ApplicationSummaryResponse Application,
+    int? DaysSinceContact,
+    bool IsStale,
+    bool IsNextActionDue);
 
 public record ActivityResponse(Guid Id, ActivityType Type, string Text, DateOnly Date)
 {
