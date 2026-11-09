@@ -6,7 +6,7 @@ import { activityTypes } from '../../api/types'
 import type { ActivityType, ApplicationDetail, ContactSummary } from '../../api/types'
 import { ErrorBanner, Loading } from '../../components/Feedback'
 import { Field, Select } from '../../components/Field'
-import { StatusSelect } from '../../components/StatusSelect'
+import { StageTrack } from '../../components/StageTrack'
 import { useAsync } from '../../hooks/useAsync'
 import { formatDate, label, todayIso } from '../../labels'
 import { requestWithStatus } from './applicationForm'
@@ -52,81 +52,75 @@ export function ApplicationDetailPage() {
     }
   }
 
-  const location = [application.remoteRegion, application.hybridCity && `Hybrid · ${application.hybridCity}`]
+  const location = [application.remoteRegion, application.hybridCity && `Hybrid in ${application.hybridCity}`]
     .filter(Boolean)
-    .join(' / ')
+    .join(', ')
 
   return (
-    <section>
-      <div className="page-header">
+    <article className="detail">
+      <header className="detail-header">
         <div>
-          <p className="muted breadcrumb">
-            <Link to="/">Applications</Link> /
-          </p>
+          <Link to="/" className="back-link">
+            Applications
+          </Link>
           <h1>{application.company}</h1>
-          <p className="subtitle">
-            {application.roleTitle}
-            {application.jobUrl && (
-              <>
-                {' · '}
-                <a href={application.jobUrl} target="_blank" rel="noreferrer">
-                  Job post ↗
-                </a>
-              </>
-            )}
+          <p className="detail-role">
+            {application.roleTitle} · {label(application.channel)} · {label(application.employmentType)}
           </p>
         </div>
-        <div className="actions">
-          <Link to={`/applications/${application.id}/edit`} className="button">
+        <div className="detail-actions">
+          {application.jobUrl && (
+            <a className="button-sm button-ghost" href={application.jobUrl} target="_blank" rel="noreferrer">
+              Job post ↗
+            </a>
+          )}
+          <Link to={`/applications/${application.id}/edit`} className="button-sm button-ghost">
             Edit
           </Link>
-          <button type="button" className="button button-danger" onClick={handleDelete}>
+          <button type="button" className="button-sm button-ghost button-ghost-danger" onClick={handleDelete}>
             Delete
           </button>
         </div>
-      </div>
+      </header>
+
+      <StageTrack
+        status={application.status}
+        furthestStage={application.furthestStage}
+        onChange={(status) => mutate(() => api.updateApplication(application.id, requestWithStatus(application, status)))}
+      />
 
       <ErrorBanner error={actionError} />
 
-      <div className="detail-grid">
-        <div className="panel">
-          <h2>Overview</h2>
-          <dl className="facts">
-            <dt>Status</dt>
-            <dd>
-              <StatusSelect
-                value={application.status}
-                onChange={(status) => mutate(() => api.updateApplication(application.id, requestWithStatus(application, status)))}
-              />
-            </dd>
-            <dt>Track</dt>
-            <dd>{label(application.track)}</dd>
-            <dt>Channel</dt>
-            <dd>{label(application.channel)}</dd>
-            <dt>Employment</dt>
-            <dd>{label(application.employmentType)}</dd>
-            <dt>Location</dt>
-            <dd>{location || '—'}</dd>
-            <dt>Compensation</dt>
-            <dd>{formatCompensation(application)}</dd>
-            <dt>Applied on</dt>
-            <dd>{formatDate(application.appliedOn)}</dd>
-            <dt>Last contact</dt>
-            <dd>{formatDate(application.lastContactOn)}</dd>
-          </dl>
-        </div>
-
-        <div className="panel">
+      <div className="detail-body">
+        <div className="detail-main">
           <NextActionSection application={application} mutate={mutate} />
 
-          <h2>Notes</h2>
-          {application.notes ? <p className="notes">{application.notes}</p> : <p className="muted">No notes.</p>}
+          <section className="detail-section">
+            <h2>Notes</h2>
+            {application.notes ? <p className="notes">{application.notes}</p> : <p className="muted">No notes yet.</p>}
+          </section>
+
+          <TimelinePanel application={application} mutate={mutate} />
         </div>
 
-        <ContactsPanel application={application} mutate={mutate} />
-        <TimelinePanel application={application} mutate={mutate} />
+        <aside className="detail-side">
+          <dl className="facts">
+            <dt>Track</dt>
+            <dd>{label(application.track)}</dd>
+            <dt>Applied</dt>
+            <dd className="tabular">{formatDate(application.appliedOn)}</dd>
+            <dt>Last contact</dt>
+            <dd className="tabular">{formatDate(application.lastContactOn)}</dd>
+            <dt>Location</dt>
+            <dd>{location || '—'}</dd>
+            <dt>Pay</dt>
+            <dd>{formatCompensation(application)}</dd>
+          </dl>
+
+          <ContactsPanel application={application} mutate={mutate} />
+        </aside>
       </div>
-    </section>
+    </article>
   )
 }
 
@@ -140,16 +134,18 @@ function ContactsPanel({ application, mutate }: { application: ApplicationDetail
   const available = (allContacts ?? []).filter((c) => !linkedIds.has(c.id))
 
   return (
-    <div className="panel">
+    <section className="detail-section">
       <h2>Contacts</h2>
       {application.contacts.length === 0 && <p className="muted">No contacts linked.</p>}
       <ul className="contact-list">
         {application.contacts.map((c: ContactSummary) => (
           <li key={c.id}>
-            <Link to={`/contacts/${c.id}`}>{c.name}</Link>
-            <span className="muted">
-              {' '}· {label(c.role)}
-              {c.company && ` · ${c.company}`}
+            <span className="contact-name">
+              <Link to={`/contacts/${c.id}`}>{c.name}</Link>
+              <span className="muted">
+                {label(c.role)}
+                {c.company && ` at ${c.company}`}
+              </span>
             </span>
             <button
               type="button"
@@ -184,7 +180,7 @@ function ContactsPanel({ application, mutate }: { application: ApplicationDetail
           New contact
         </Link>
       </div>
-    </div>
+    </section>
   )
 }
 
@@ -201,7 +197,7 @@ function TimelinePanel({ application, mutate }: { application: ApplicationDetail
   }
 
   return (
-    <div className="panel panel-wide">
+    <section className="detail-section">
       <h2>Timeline</h2>
       <form className="activity-form" onSubmit={handleSubmit}>
         <Field label="Type">
@@ -224,14 +220,14 @@ function TimelinePanel({ application, mutate }: { application: ApplicationDetail
         <ol className="timeline">
           {application.activities.map((a) => (
             <li key={a.id} className={`timeline-item timeline-${a.type}`}>
-              <span className="timeline-date">{formatDate(a.date)}</span>
+              <span className="timeline-date tabular">{formatDate(a.date)}</span>
               <span className="timeline-type">{label(a.type)}</span>
               <span>{a.text}</span>
             </li>
           ))}
         </ol>
       )}
-    </div>
+    </section>
   )
 }
 

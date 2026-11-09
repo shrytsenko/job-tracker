@@ -15,6 +15,10 @@ export const applicationStatuses = [
 ] as const
 export type ApplicationStatus = (typeof applicationStatuses)[number]
 
+/** The hiring pipeline in order (mirrors Application.PipelineStages in the backend). */
+export const pipelineStages = ['Applied', 'RecruiterScreen', 'TechInterview', 'FinalInterview', 'Offer'] as const
+export type PipelineStage = (typeof pipelineStages)[number]
+
 export const tracks = ['Developer', 'SDET', 'Integration', 'Other'] as const
 export type Track = (typeof tracks)[number]
 
@@ -47,6 +51,8 @@ export interface ApplicationSummary {
   track: Track
   channel: Channel
   status: ApplicationStatus
+  /** Furthest pipeline stage reached; kept after the application closes. */
+  furthestStage: PipelineStage | null
   employmentType: EmploymentType
   appliedOn: IsoDate | null
   lastContactOn: IsoDate | null
@@ -62,6 +68,8 @@ export interface ApplicationDetail {
   track: Track
   channel: Channel
   status: ApplicationStatus
+  /** Furthest pipeline stage reached; kept after the application closes. */
+  furthestStage: PipelineStage | null
   employmentType: EmploymentType
   remoteRegion: string | null
   hybridCity: string | null

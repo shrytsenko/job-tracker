@@ -50,6 +50,7 @@ public record ApplicationSummaryResponse(
     Track Track,
     Channel Channel,
     ApplicationStatus Status,
+    ApplicationStatus? FurthestStage,
     EmploymentType EmploymentType,
     DateOnly? AppliedOn,
     DateOnly? LastContactOn,
@@ -57,7 +58,7 @@ public record ApplicationSummaryResponse(
     DateOnly? NextActionDueOn)
 {
     public static ApplicationSummaryResponse From(Application a) => new(
-        a.Id, a.Company, a.RoleTitle, a.Track, a.Channel, a.Status, a.EmploymentType,
+        a.Id, a.Company, a.RoleTitle, a.Track, a.Channel, a.Status, a.FurthestStage, a.EmploymentType,
         a.AppliedOn, a.LastContactOn, a.NextActionDescription, a.NextActionDueOn);
 }
 
@@ -69,6 +70,7 @@ public record ApplicationDetailResponse(
     Track Track,
     Channel Channel,
     ApplicationStatus Status,
+    ApplicationStatus? FurthestStage,
     EmploymentType EmploymentType,
     string? RemoteRegion,
     string? HybridCity,
@@ -85,7 +87,7 @@ public record ApplicationDetailResponse(
     IReadOnlyList<ActivityResponse> Activities)
 {
     public static ApplicationDetailResponse From(Application a) => new(
-        a.Id, a.Company, a.RoleTitle, a.JobUrl, a.Track, a.Channel, a.Status, a.EmploymentType,
+        a.Id, a.Company, a.RoleTitle, a.JobUrl, a.Track, a.Channel, a.Status, a.FurthestStage, a.EmploymentType,
         a.RemoteRegion, a.HybridCity,
         a.CompensationAmount, a.CompensationCurrency, a.CompensationPeriod, a.CompensationIsNet,
         a.AppliedOn, a.LastContactOn, a.NextActionDescription, a.NextActionDueOn, a.Notes,

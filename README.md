@@ -121,8 +121,9 @@ Key decisions:
 - **No repository layer.** `DbContext` already is a unit of work over repositories. Another abstraction would add code without adding value at this size.
 - **Enums stored as text** in SQLite, so the database file is readable and reordering enum members can't corrupt data.
 - **Next action has a lifecycle**: set → done (logged on the timeline) → set the next one. `SetNextAction` and `CompleteNextAction` on the entity enforce it, e.g. a due date needs a description. Completing as a message or reply also counts as contact.
+- **The pipeline is the UI.** Each application shows a stage track (Applied to Offer), drawn like a CI pipeline; clicking a stage changes the status. `FurthestStage` is kept when an application closes, so a rejection shows where it stopped, and the Phase 3 funnel can count how far each application got.
 - **Follow-up rule on the domain.** "No contact for N days" and "next action due" are `Application` methods with unit tests. The endpoint and, later, the MCP server reuse them instead of re-implementing the rule.
-- **React with only React Router as a dependency.** Data fetching is a small `useAsync` hook over a typed client, and styling is one plain CSS file with variables (light and dark themes). Filters live in the URL, so reloads and the back button keep them.
+- **React with only React Router as a dependency.** Data fetching is a small `useAsync` hook over a typed client, and styling is one plain CSS file with variables (light and dark themes) and a self-hosted font (Atkinson Hyperlegible Next). Filters live in the URL, so reloads and the back button keep them.
 - **Integration tests run the real migrations** against an in-memory SQLite database, so they test the same schema production uses.
 
 ## Privacy

@@ -1,62 +1,79 @@
-/* One stylesheet, no framework. Colours are CSS variables so dark mode is a single override block. */
+/*
+  One stylesheet, no framework. Colours are CSS variables, so dark mode is one override block.
+
+  Palette — the hiring pipeline as a CI pipeline:
+    paper  #F2F4F1  page          ink    #24302C  text
+    pine   #1F6B57  stages passed signal #C27C0E  due / overdue (the only warm colour)
+    halt   #A3525A  track stopped rule   #D5DBD6  hairlines, unfilled stages
+  Type: Atkinson Hyperlegible Next, scale 13 / 15 / 17 / 21 / 28.
+*/
 
 :root {
-  --bg: #f6f7f9;
-  --surface: #ffffff;
-  --text: #1d2330;
-  --muted: #667085;
-  --border: #e2e5ea;
-  --accent: #2f5bea;
+  --bg: #f2f4f1;
+  --surface: #fbfcfa;
+  --text: #24302c;
+  --muted: #5e6b66;
+  --border: #d5dbd6;
+  --accent: #1f6b57;
   --accent-text: #ffffff;
-  --danger: #c4321f;
-  --focus: rgba(47, 91, 234, 0.35);
-  --accent-soft: #eaf0fe;
+  --accent-soft: #dceae4;
+  --danger: #a3525a;
+  --focus: rgba(31, 107, 87, 0.35);
 
-  --tone-neutral-bg: #eef0f3;
-  --tone-neutral-fg: #475467;
-  --tone-active-bg: #e6edfd;
-  --tone-active-fg: #2445b8;
-  --tone-good-bg: #e3f5ea;
-  --tone-good-fg: #1d7044;
-  --tone-closed-bg: #f4f4f5;
-  --tone-closed-fg: #8a8f98;
-  --warn-bg: #fff4e0;
-  --warn-fg: #9a5b00;
-  --error-bg: #fdecea;
+  --signal: #c27c0e;
+  --warn-fg: #8f5a00;
+  --warn-bg: #f8ebd3;
+  --error-bg: #f6e3e5;
 
-  --radius: 8px;
-  --font: system-ui, 'Segoe UI', Roboto, sans-serif;
+  --tone-neutral-bg: #e6eae7;
+  --tone-neutral-fg: #4a5752;
+  --tone-active-bg: #dceae4;
+  --tone-active-fg: #1a5a49;
+  --tone-good-bg: #d3ebdd;
+  --tone-good-fg: #1b6440;
+  --tone-closed-bg: #ece6e7;
+  --tone-closed-fg: #84585e;
+
+  --radius: 6px;
+  --font: 'Atkinson Hyperlegible Next Variable', system-ui, 'Segoe UI', sans-serif;
+  --step--1: 0.8667rem; /* 13px */
+  --step-0: 1rem; /* 15px */
+  --step-1: 1.1333rem; /* 17px */
+  --step-2: 1.4rem; /* 21px */
+  --step-3: 1.8667rem; /* 28px */
 
   color-scheme: light dark;
-  font: 15px/1.5 var(--font);
+  font: 15px/1.55 var(--font);
   color: var(--text);
   background: var(--bg);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #111318;
-    --surface: #1a1d24;
-    --text: #e6e8ec;
-    --muted: #9aa1ad;
-    --border: #2c313b;
-    --accent: #6d8dff;
-    --accent-text: #0d1020;
-    --danger: #ff7a66;
-    --focus: rgba(109, 141, 255, 0.4);
-    --accent-soft: #1f2a48;
+    --bg: #151a18;
+    --surface: #1c2320;
+    --text: #e2e8e4;
+    --muted: #98a59f;
+    --border: #2d3733;
+    --accent: #62b89b;
+    --accent-text: #0f1a16;
+    --accent-soft: #1e3830;
+    --danger: #db8a94;
+    --focus: rgba(98, 184, 155, 0.4);
 
-    --tone-neutral-bg: #262a33;
-    --tone-neutral-fg: #c3c8d1;
-    --tone-active-bg: #1f2b4d;
-    --tone-active-fg: #a9bcff;
-    --tone-good-bg: #173326;
-    --tone-good-fg: #7fd6a3;
-    --tone-closed-bg: #22252b;
-    --tone-closed-fg: #7d838e;
-    --warn-bg: #3a2c12;
-    --warn-fg: #f2c36b;
-    --error-bg: #3d1d19;
+    --signal: #e2a33c;
+    --warn-fg: #edbe6a;
+    --warn-bg: #3a2d14;
+    --error-bg: #3b2124;
+
+    --tone-neutral-bg: #262e2b;
+    --tone-neutral-fg: #c2ccc7;
+    --tone-active-bg: #1e3830;
+    --tone-active-fg: #8fd3ba;
+    --tone-good-bg: #183a2a;
+    --tone-good-fg: #86d6a9;
+    --tone-closed-bg: #33282a;
+    --tone-closed-fg: #c69aa0;
   }
 }
 
@@ -72,20 +89,23 @@ body {
 h1,
 h2 {
   margin: 0;
-  line-height: 1.25;
+  line-height: 1.2;
 }
 
 h1 {
-  font-size: 1.6rem;
+  font-size: var(--step-3);
+  font-weight: 700;
+  letter-spacing: -0.01em;
 }
 
 h2 {
-  font-size: 1rem;
+  font-size: var(--step-0);
+  font-weight: 700;
   margin-bottom: 0.75rem;
 }
 
 h2:not(:first-child) {
-  margin-top: 1.25rem;
+  margin-top: 1.5rem;
 }
 
 a {
@@ -95,6 +115,11 @@ a {
 
 a:hover {
   text-decoration: underline;
+}
+
+/* Dates line up in columns. */
+.tabular {
+  font-variant-numeric: tabular-nums;
 }
 
 .muted {
@@ -445,12 +470,7 @@ textarea {
 
 /* ---------- Detail page ---------- */
 
-.detail-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1rem;
-}
-
+/* .panel is still used by the contact page; the detail page itself has only one box (next action). */
 .panel {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -458,14 +478,209 @@ textarea {
   padding: 1rem 1.25rem;
 }
 
-.panel-wide {
-  grid-column: 1 / -1;
+.detail {
+  max-width: 1040px;
+}
+
+.detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1.75rem;
+}
+
+.back-link {
+  display: inline-block;
+  margin-bottom: 0.35rem;
+  font-size: var(--step--1);
+}
+
+.back-link::before {
+  content: '\2039\00a0';
+}
+
+.detail-role {
+  margin: 0.35rem 0 0;
+  font-size: var(--step-1);
+  color: var(--muted);
+}
+
+.detail-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.25rem;
+}
+
+/* Stage track: the one bold element. One segment per pipeline stage, filled up to the furthest reached. */
+.stage-track-wrap {
+  margin-bottom: 2rem;
+}
+
+.stage-track {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.stage button {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0 0 0.25rem;
+  border: none;
+  background: none;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.stage button:disabled {
+  cursor: progress;
+}
+
+.stage button:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+.stage-bar {
+  display: block;
+  height: 10px;
+  background: var(--border);
+  transition: background-color 0.3s ease;
+}
+
+.stage:first-child .stage-bar {
+  border-radius: 5px 0 0 5px;
+}
+
+.stage:last-child .stage-bar {
+  border-radius: 0 5px 5px 0;
+}
+
+.stage-label {
+  font-size: var(--step--1);
+  color: var(--muted);
+}
+
+.stage-passed .stage-bar,
+.stage-current .stage-bar {
+  background: var(--accent);
+}
+
+.stage-current .stage-label {
+  color: var(--text);
+  font-weight: 700;
+}
+
+/* The current stage gets a notch at its right end, so "where it is now" reads at a glance. */
+.stage-current .stage-bar {
+  box-shadow: inset -4px 0 0 var(--bg);
+}
+
+.stage-halted .stage-bar {
+  background: var(--danger);
+}
+
+.stage-halted .stage-label {
+  color: var(--danger);
+  font-weight: 700;
+}
+
+.stage-pending button:hover .stage-bar {
+  background: color-mix(in srgb, var(--accent) 35%, var(--border));
+}
+
+.stage-pending button:hover .stage-label {
+  color: var(--text);
+}
+
+.stage-footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem 1rem;
+  margin-top: 0.75rem;
+}
+
+.stage-caption {
+  margin: 0;
+  color: var(--muted);
+}
+
+.stage-caption-halted {
+  color: var(--danger);
+}
+
+.stage-caption-accepted {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.stage-closers {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.15rem;
+  font-size: var(--step--1);
+}
+
+.stage-closers .muted {
+  margin-right: 0.25rem;
+}
+
+.stage-closers [aria-pressed='true'] {
+  color: var(--text);
+  background: var(--tone-neutral-bg);
+  font-weight: 700;
+}
+
+.save-note {
+  margin-left: 0.5rem;
+  font-size: var(--step--1);
+  color: var(--accent);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.save-note-visible {
+  opacity: 1;
+}
+
+/* Body: main column (what to do, what happened) and a quiet side column (facts, people). */
+.detail-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: 2.5rem;
+  align-items: start;
+}
+
+.detail-side {
+  border-left: 1px solid var(--border);
+  padding-left: 1.75rem;
+}
+
+.detail-section {
+  margin-top: 2rem;
+}
+
+.detail-side .detail-section {
+  margin-top: 1.75rem;
 }
 
 .facts {
   display: grid;
   grid-template-columns: max-content 1fr;
-  gap: 0.45rem 1rem;
+  gap: 0.5rem 1rem;
   margin: 0;
 }
 
@@ -477,98 +692,79 @@ textarea {
   margin: 0;
 }
 
-/* Status: the badge is a <select>, styled as a pill with a small chevron. */
-.status-select {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.6rem;
-}
-
-.badge-select {
-  appearance: none;
-  field-sizing: content; /* size to the selected option, not the longest one */
-  border: 1px solid transparent;
-  padding: 0.15rem 1.6rem 0.15rem 0.65rem;
-  cursor: pointer;
-  background-image: linear-gradient(45deg, transparent 50%, currentColor 50%),
-    linear-gradient(135deg, currentColor 50%, transparent 50%);
-  background-position: right 0.75rem center, right 0.45rem center;
-  background-size: 0.3rem 0.3rem;
-  background-repeat: no-repeat;
-}
-
-.badge-select:hover {
-  border-color: currentColor;
-}
-
-/* Options would otherwise inherit the pill's colours; the open list should look like a normal menu. */
-.badge-select option {
-  color: var(--text);
-  background: var(--surface);
-  font-weight: 400;
-}
-
-.badge-select:disabled {
-  opacity: 0.6;
-  cursor: progress;
-}
-
-.save-note {
-  font-size: 0.8rem;
-  color: var(--tone-good-fg);
-  opacity: 0;
-  transition: opacity 0.2s;
-}
-
-.save-note-visible {
-  opacity: 1;
-}
-
+/* Next action: the only boxed element on the page. */
 .next-action {
   margin: 0;
 }
 
-/* The next action is the most important line on the page, so it gets a card with an accent bar. */
-.next-action-card {
-  border-left: 3px solid var(--accent);
-  background: var(--accent-soft);
+.next-action-card,
+.next-action-form {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--accent);
   border-radius: 0 var(--radius) var(--radius) 0;
-  padding: 0.6rem 0.85rem;
+  padding: 0.9rem 1.1rem;
 }
 
 .next-action-text {
   margin: 0;
-  font-size: 1.05rem;
-  font-weight: 600;
-  line-height: 1.4;
+  font-size: var(--step-2);
+  font-weight: 700;
+  line-height: 1.3;
 }
 
 .next-action-meta {
-  margin: 0.15rem 0 0;
-  font-size: 0.85rem;
+  margin: 0.3rem 0 0;
+  font-size: var(--step--1);
   color: var(--muted);
+  font-variant-numeric: tabular-nums;
 }
 
 .next-action-due {
-  border-left-color: var(--warn-fg);
+  border-left-color: var(--signal);
   background: var(--warn-bg);
 }
 
 .next-action-due .next-action-meta {
   color: var(--warn-fg);
-  font-weight: 600;
+  font-weight: 700;
+}
+
+.next-action-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.next-action-form h2 {
+  margin-bottom: 0;
+}
+
+.next-action-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 0.6rem;
 }
 
 /* Slim secondary buttons for inline actions. */
 .button-sm {
+  display: inline-flex;
+  align-items: center;
   font: inherit;
-  font-size: 0.85rem;
+  font-size: var(--step--1);
   font-weight: 500;
   line-height: 1.2;
-  padding: 0.3rem 0.75rem;
+  padding: 0.3rem 0.7rem;
   border-radius: 999px;
   border: 1px solid transparent;
   cursor: pointer;
+  white-space: nowrap;
+}
+
+a.button-sm:hover {
+  text-decoration: none;
 }
 
 .button-soft {
@@ -591,32 +787,25 @@ textarea {
   background: var(--tone-neutral-bg);
 }
 
-.next-action-buttons {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.35rem;
-  margin-top: 0.6rem;
+.button-ghost-danger:hover {
+  color: var(--danger);
+  background: var(--error-bg);
 }
 
-.next-action-form {
-  display: flex;
-  flex-direction: column;
-  gap: 0.6rem;
-}
-
-.next-action-form h2 {
-  margin-bottom: 0;
+.button-sm:disabled {
+  opacity: 0.55;
+  cursor: progress;
 }
 
 .hint {
   margin: -0.25rem 0 0;
-  font-size: 0.85rem;
+  font-size: var(--step--1);
   color: var(--muted);
 }
 
 .notes {
   margin: 0;
+  max-width: 68ch;
   white-space: pre-wrap; /* keep the line breaks typed in the notes field */
 }
 
@@ -626,12 +815,27 @@ textarea {
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
+  gap: 0.6rem;
+}
+
+.contact-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.contact-name {
+  display: flex;
+  flex-direction: column;
+}
+
+.contact-name .muted {
+  font-size: var(--step--1);
 }
 
 .contact-list .button-link {
-  margin-left: 0.5rem;
-  font-size: 0.85rem;
+  font-size: var(--step--1);
 }
 
 .inline-form {
@@ -642,49 +846,38 @@ textarea {
 }
 
 .inline-form select {
-  flex: 1 1 200px;
+  flex: 1 1 160px;
 }
 
 .activity-form {
   display: grid;
-  grid-template-columns: 180px 170px 1fr auto;
+  grid-template-columns: 160px 150px 1fr auto;
   align-items: end;
   gap: 0.75rem;
-  margin-bottom: 1rem;
+  margin-bottom: 1.25rem;
 }
 
 .activity-form .field-wide {
   grid-column: auto;
 }
 
+/* Timeline: dates in a fixed left column, hairlines between entries. */
 .timeline {
   list-style: none;
   margin: 0;
   padding: 0;
-  border-left: 2px solid var(--border);
 }
 
 .timeline-item {
   display: grid;
-  grid-template-columns: 120px 130px 1fr;
+  grid-template-columns: 7.5rem 8.5rem 1fr;
   gap: 0.75rem;
-  padding: 0.45rem 0 0.45rem 1rem;
-  position: relative;
+  padding: 0.55rem 0;
+  border-top: 1px solid var(--border);
 }
 
-.timeline-item::before {
-  content: '';
-  position: absolute;
-  left: -6px;
-  top: 0.85rem;
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: var(--accent);
-}
-
-.timeline-Note::before {
-  background: var(--muted);
+.timeline-item:first-child {
+  border-top: none;
 }
 
 .timeline-date {
@@ -692,7 +885,19 @@ textarea {
 }
 
 .timeline-type {
-  font-weight: 600;
+  font-weight: 700;
+}
+
+.timeline-Note .timeline-type {
+  font-weight: 400;
+  color: var(--muted);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stage-bar,
+  .save-note {
+    transition: none;
+  }
 }
 
 /* ---------- Small screens ---------- */
@@ -708,9 +913,31 @@ textarea {
     padding: 1rem;
   }
 
-  .detail-grid,
+  .detail-header {
+    flex-direction: column;
+  }
+
+  .detail-actions {
+    justify-content: flex-start;
+    margin-left: -0.7rem;
+  }
+
+  .detail-body,
   .activity-form {
     grid-template-columns: 1fr;
+  }
+
+  .detail-side {
+    border-left: none;
+    padding-left: 0;
+    border-top: 1px solid var(--border);
+    padding-top: 1.5rem;
+  }
+
+  /* Five labels do not fit side by side; keep only the current or stopped stage's label. */
+  .stage-pending .stage-label,
+  .stage-passed .stage-label {
+    visibility: hidden;
   }
 
   .timeline-item {

@@ -97,6 +97,10 @@ namespace JobTracker.Infrastructure.Persistence.Migrations
                         .HasMaxLength(30)
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("FurthestStage")
+                        .HasMaxLength(30)
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("HybridCity")
                         .HasMaxLength(100)
                         .HasColumnType("TEXT");

@@ -13,6 +13,12 @@ public class Application
     public EmploymentType EmploymentType { get; private set; }
     public ApplicationStatus Status { get; private set; } = ApplicationStatus.Interested;
 
+    /// <summary>
+    /// The furthest pipeline stage (Applied → Offer) this application reached. Kept when it closes,
+    /// so "rejected after the tech interview" is known — needed for the pipeline view and funnel stats.
+    /// </summary>
+    public ApplicationStatus? FurthestStage { get; private set; }
+
     public string? RemoteRegion { get; set; }
     public string? HybridCity { get; set; }
 
@@ -53,6 +59,16 @@ public class Application
     public void ChangeStatus(ApplicationStatus newStatus, DateOnly today)
     {
         Status = newStatus;
+
+        // Being *at* a pipeline stage means that is the furthest reached; moving back is a correction.
+        // Closing statuses keep the stage where the application ended.
+        FurthestStage = newStatus switch
+        {
+            ApplicationStatus.Interested => null,
+            ApplicationStatus.Accepted => ApplicationStatus.Offer,
+            _ when PipelineStages.Contains(newStatus) => newStatus,
+            _ => FurthestStage,
+        };
 
         if (newStatus == ApplicationStatus.Applied && AppliedOn is null)
         {
@@ -114,6 +130,16 @@ public class Application
         SetNextAction(null, null);
         return activity;
     }
+
+        /// <summary>The hiring pipeline in order. Interested comes before it; closing statuses end it.</summary>
+    public static readonly IReadOnlyList<ApplicationStatus> PipelineStages =
+    [
+        ApplicationStatus.Applied,
+        ApplicationStatus.RecruiterScreen,
+        ApplicationStatus.TechInterview,
+        ApplicationStatus.FinalInterview,
+        ApplicationStatus.Offer,
+    ];
 
         /// <summary>The search is over for this application: it never needs a follow-up.</summary>
     public bool IsClosed => Status is ApplicationStatus.Accepted

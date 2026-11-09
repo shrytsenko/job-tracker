@@ -29,6 +29,7 @@ public class JobTrackerDbContext(DbContextOptions<JobTrackerDbContext> options) 
             entity.Property(a => a.Track).HasConversion<string>().HasMaxLength(30);
             entity.Property(a => a.Channel).HasConversion<string>().HasMaxLength(30);
             entity.Property(a => a.Status).HasConversion<string>().HasMaxLength(30);
+            entity.Property(a => a.FurthestStage).HasConversion<string>().HasMaxLength(30);
             entity.Property(a => a.EmploymentType).HasConversion<string>().HasMaxLength(30);
             entity.Property(a => a.CompensationPeriod).HasConversion<string>().HasMaxLength(30);
 

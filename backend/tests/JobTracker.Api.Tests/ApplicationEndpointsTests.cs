@@ -190,6 +190,19 @@ public class ApplicationEndpointsTests(JobTrackerApiFactory factory) : IClassFix
     }
 
     [Fact]
+    public async Task Update_ToRejected_KeepsFurthestStageReached()
+    {
+        var created = await CreateAsync(NewRequest() with { Status = ApplicationStatus.TechInterview });
+
+        var response = await _client.PutAsJsonAsync($"/api/applications/{created.Id}",
+            NewRequest() with { Company = created.Company, Status = ApplicationStatus.Rejected }, TestJson.Options);
+        var updated = await response.Content.ReadFromJsonAsync<ApplicationDetailResponse>(TestJson.Options);
+
+        Assert.Equal(ApplicationStatus.Rejected, updated!.Status);
+        Assert.Equal(ApplicationStatus.TechInterview, updated.FurthestStage);
+    }
+
+    [Fact]
     public async Task Update_Unknown_ReturnsNotFound()
     {
         var response = await _client.PutAsJsonAsync($"/api/applications/{Guid.NewGuid()}", NewRequest(), TestJson.Options);
