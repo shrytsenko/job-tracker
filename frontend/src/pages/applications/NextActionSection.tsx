@@ -165,7 +165,7 @@ function EditForm({
       <Field label="Next action">
         <input value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Follow up with recruiter" autoFocus />
       </Field>
-      <Field label="Due on">
+      <Field label="Due on" help="When it's due. Due and overdue actions show up in Follow-ups.">
         <input type="date" value={dueOn} onChange={(e) => setDueOn(e.target.value)} />
       </Field>
       <div className="next-action-buttons">

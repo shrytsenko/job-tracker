@@ -74,10 +74,10 @@ export function ApplicationDetailPage() {
               Job post ↗
             </a>
           )}
-          <Link to={`/applications/${application.id}/edit`} className="button-sm button-ghost">
+          <Link to={`/applications/${application.id}/edit`} className="button-sm button-bordered">
             Edit
           </Link>
-          <button type="button" className="button-sm button-ghost button-ghost-danger" onClick={handleDelete}>
+          <button type="button" className="button-sm button-bordered button-bordered-danger" onClick={handleDelete}>
             Delete
           </button>
         </div>
@@ -202,7 +202,7 @@ function TimelinePanel({ application, mutate }: { application: ApplicationDetail
     <section className="detail-section">
       <h2>Timeline</h2>
       <form className="activity-form" onSubmit={handleSubmit}>
-        <Field label="Type">
+        <Field label="Type" help="What happened. A message, reply, interview or take-home counts as contact; a note is just for you.">
           <Select value={type} options={activityTypes} onChange={(v) => v && setType(v)} formatOption={label} />
         </Field>
         <Field label="Date">

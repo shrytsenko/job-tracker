@@ -67,7 +67,7 @@ function ApplicationForm({ existing }: { existing?: ApplicationDetail }) {
 
         <fieldset>
           <legend>Role</legend>
-          <Field label="Company *" errors={fieldErrors.company}>
+          <Field label="Company *" help="The company you would work for. For agency roles, use the end client if you know it, otherwise the agency." errors={fieldErrors.company}>
             <SuggestionInput value={values.company} onChange={(v) => set('company', v)} loadSuggestions={api.listCompanies} autoFocus />
           </Field>
           <Field label="Role title *" errors={fieldErrors.roleTitle}>
@@ -76,13 +76,13 @@ function ApplicationForm({ existing }: { existing?: ApplicationDetail }) {
           <Field label="Job URL" errors={fieldErrors.jobUrl} wide>
             <input type="url" value={values.jobUrl} onChange={(e) => set('jobUrl', e.target.value)} placeholder="https://…" />
           </Field>
-          <Field label="CV sent" errors={fieldErrors.cvVersion}>
+          <Field label="CV sent" help="Which version of your CV you sent. Reuse the same names so you can see which CV gets replies." errors={fieldErrors.cvVersion}>
             <SuggestionInput value={values.cvVersion} onChange={(v) => set('cvVersion', v)} loadSuggestions={api.listCvVersions} placeholder="Developer CV v3" />
           </Field>
           <Field label="Status">
             <Select value={values.status} options={applicationStatuses} onChange={(v) => v && set('status', v)} formatOption={label} />
           </Field>
-          <Field label="Track">
+          <Field label="Track" help="Which of your job searches this belongs to. The dashboard compares tracks to show where to focus.">
             <Select value={values.track} options={tracks} onChange={(v) => v && set('track', v)} formatOption={label} />
           </Field>
           <Field label="Channel">
@@ -95,7 +95,7 @@ function ApplicationForm({ existing }: { existing?: ApplicationDetail }) {
 
         <fieldset>
           <legend>Location</legend>
-          <Field label="Remote region" errors={fieldErrors.remoteRegion}>
+          <Field label="Remote region" help="Where you can work from, as the post says. For example Remote EU or US only." errors={fieldErrors.remoteRegion}>
             <input value={values.remoteRegion} onChange={(e) => set('remoteRegion', e.target.value)} placeholder="Remote EU, US only…" />
           </Field>
           <Field label="Hybrid city" errors={fieldErrors.hybridCity}>
@@ -121,16 +121,16 @@ function ApplicationForm({ existing }: { existing?: ApplicationDetail }) {
 
         <fieldset>
           <legend>Dates and next step</legend>
-          <Field label="Applied on">
+          <Field label="Applied on" help="The day you sent the application. Filled in for you when the status changes to Applied.">
             <input type="date" value={values.appliedOn} onChange={(e) => set('appliedOn', e.target.value)} />
           </Field>
-          <Field label="Last contact on">
+          <Field label="Last contact on" help="The last time you and the company were in touch. Logging a message, reply, interview or take-home updates it for you.">
             <input type="date" value={values.lastContactOn} onChange={(e) => set('lastContactOn', e.target.value)} />
           </Field>
           <Field label="Next action" errors={fieldErrors.nextActionDescription}>
             <input value={values.nextActionDescription} onChange={(e) => set('nextActionDescription', e.target.value)} placeholder="Follow up with recruiter" />
           </Field>
-          <Field label="Due on">
+          <Field label="Due on" help="When the next action is due. Due and overdue actions show up in Follow-ups.">
             <input type="date" value={values.nextActionDueOn} onChange={(e) => set('nextActionDueOn', e.target.value)} />
           </Field>
         </fieldset>

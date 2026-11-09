@@ -107,7 +107,7 @@ export function ApplicationsPage() {
         </p>
       ) : (
         data && (
-          <table className="table">
+          <table className="table table-clickable">
             <thead>
               <tr>
                 <th>Company</th>
@@ -123,7 +123,9 @@ export function ApplicationsPage() {
               {data.map((a) => (
                 <tr key={a.id}>
                   <td>
-                    <Link to={`/applications/${a.id}`}>{a.company}</Link>
+                    <Link to={`/applications/${a.id}`} className="row-link">
+                      {a.company}
+                    </Link>
                   </td>
                   <td>{a.roleTitle}</td>
                   <td>

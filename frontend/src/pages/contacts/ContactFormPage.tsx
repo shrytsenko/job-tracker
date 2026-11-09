@@ -114,7 +114,7 @@ function ContactForm({ existing }: { existing?: ContactDetail }) {
           <Field label="Role">
             <Select value={values.role} options={contactRoles} onChange={(v) => v && set('role', v)} formatOption={label} />
           </Field>
-          <Field label="Company" errors={fieldErrors.company}>
+          <Field label="Company" help="Where they work. For agency recruiters, this is the agency, not the hiring company." errors={fieldErrors.company}>
             <SuggestionInput value={values.company} onChange={(v) => set('company', v)} loadSuggestions={api.listCompanies} />
           </Field>
           <Field label="Email" errors={fieldErrors.email}>

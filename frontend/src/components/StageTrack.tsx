@@ -80,7 +80,7 @@ export function StageTrack({ status, furthestStage, onChange }: Props) {
             <button
               key={closing}
               type="button"
-              className="button-sm button-ghost"
+              className="button-sm button-bordered stage-closer stage-closer-halt"
               aria-pressed={status === closing}
               disabled={saving}
               onClick={() => void change(closing)}
@@ -91,7 +91,7 @@ export function StageTrack({ status, furthestStage, onChange }: Props) {
           {(furthestStage === 'Offer' || isAccepted) && (
             <button
               type="button"
-              className="button-sm button-ghost"
+              className="button-sm button-bordered stage-closer stage-closer-good"
               aria-pressed={isAccepted}
               disabled={saving}
               onClick={() => void change('Accepted')}
@@ -101,7 +101,7 @@ export function StageTrack({ status, furthestStage, onChange }: Props) {
           )}
           <button
             type="button"
-            className="button-sm button-ghost"
+            className="button-sm button-bordered stage-closer"
             aria-pressed={status === 'Interested'}
             disabled={saving}
             onClick={() => void change('Interested')}

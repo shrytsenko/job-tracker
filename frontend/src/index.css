@@ -388,6 +388,34 @@ textarea {
   background: var(--bg);
 }
 
+/*
+  Whole row clickable: the row's main link is stretched over the row with ::after.
+  It stays a real link, so Ctrl/Cmd-click opens a new tab and the keyboard reaches one link per row.
+*/
+.table-clickable tbody tr {
+  position: relative;
+  cursor: pointer;
+}
+
+.table-clickable .row-link::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+}
+
+.table-clickable tbody tr:hover .row-link {
+  text-decoration: underline;
+}
+
+.table-clickable .row-link:focus-visible {
+  outline: none;
+}
+
+.table-clickable .row-link:focus-visible::after {
+  outline: 3px solid var(--focus);
+  outline-offset: -3px;
+}
+
 .reasons {
   display: flex;
   flex-wrap: wrap;
@@ -454,9 +482,67 @@ textarea {
 }
 
 .field-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
   font-size: 0.85rem;
   font-weight: 600;
   color: var(--muted);
+}
+
+/* Field help: the label gets a dotted underline; the explanation shows on hover or focus. */
+.field-help {
+  position: relative;
+  display: inline-flex;
+}
+
+.field-help-trigger {
+  text-decoration: underline dotted;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  cursor: help;
+  border-radius: 2px;
+}
+
+.field-help-trigger:hover {
+  color: var(--text);
+}
+
+.field-help-trigger:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.field-help-text {
+  position: absolute;
+  top: calc(100% + 0.4rem);
+  left: -0.5rem;
+  z-index: 10;
+  width: max-content;
+  max-width: min(18rem, 80vw);
+  padding: 0.5rem 0.7rem;
+  border-radius: var(--radius);
+  background: var(--text);
+  color: var(--bg);
+  font-size: var(--step--1);
+  font-weight: 400;
+  line-height: 1.45;
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 0.15s;
+  pointer-events: none;
+}
+
+.field-help:hover .field-help-text,
+.field-help-trigger:focus-visible + .field-help-text {
+  visibility: visible;
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .field-help-text {
+    transition: none;
+  }
 }
 
 .field-invalid input,
@@ -637,18 +723,37 @@ textarea {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.15rem;
+  gap: 0.35rem;
   font-size: var(--step--1);
 }
 
 .stage-closers .muted {
-  margin-right: 0.25rem;
+  margin-right: 0.15rem;
 }
 
-.stage-closers [aria-pressed='true'] {
-  color: var(--text);
+/* Same bordered pills as Edit, a little lighter since there are several in a row. */
+.stage-closer {
+  padding: 0.3rem 0.75rem;
+  font-weight: 500;
+}
+
+/* The active outcome is filled, so the current state is obvious. */
+.stage-closer[aria-pressed='true'] {
   background: var(--tone-neutral-bg);
+  border-color: var(--text);
   font-weight: 700;
+}
+
+.stage-closer-halt[aria-pressed='true'] {
+  background: var(--error-bg);
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+.stage-closer-good[aria-pressed='true'] {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent);
 }
 
 .save-note {
@@ -794,8 +899,25 @@ a.button-sm:hover {
   background: var(--tone-neutral-bg);
 }
 
-.button-ghost-danger:hover {
+/* Page-level actions (Edit, Delete): visible without competing with the stage track. */
+.button-bordered {
+  padding: 0.35rem 0.9rem;
+  border-color: color-mix(in srgb, var(--text) 22%, transparent);
+  background: var(--surface);
+  color: var(--text);
+  font-weight: 600;
+}
+
+.button-bordered:hover {
+  border-color: var(--text);
+}
+
+.button-bordered-danger {
   color: var(--danger);
+}
+
+.button-bordered-danger:hover {
+  border-color: var(--danger);
   background: var(--error-bg);
 }
 
