@@ -1,0 +1,21 @@
+@host = http://localhost:5122
+
+### List applications (filters are optional)
+GET {{host}}/api/applications?status=Applied&track=Developer
+
+### Create an application
+POST {{host}}/api/applications
+Content-Type: application/json
+
+{
+  "company": "Contoso Labs",
+  "roleTitle": "Senior .NET Developer",
+  "track": "Developer",
+  "channel": "LinkedIn",
+  "employmentType": "Permanent",
+  "status": "Applied",
+  "remoteRegion": "Remote EU"
+}
+
+### List contacts
+GET {{host}}/api/contacts
