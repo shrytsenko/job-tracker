@@ -203,6 +203,21 @@ public class ApplicationEndpointsTests(JobTrackerApiFactory factory) : IClassFix
     }
 
     [Fact]
+    public async Task CvVersion_IsSavedAndSuggestedOnce()
+    {
+        var marker = Guid.NewGuid().ToString("N")[..6];
+        var cv = $"Developer CV {marker}";
+        var created = await CreateAsync(NewRequest() with { CvVersion = cv });
+        await CreateAsync(NewRequest() with { CvVersion = cv.ToUpperInvariant() });
+
+        var fetched = await _client.GetFromJsonAsync<ApplicationDetailResponse>($"/api/applications/{created.Id}", TestJson.Options);
+        var suggestions = await _client.GetFromJsonAsync<List<string>>("/api/applications/cv-versions");
+
+        Assert.Equal(cv, fetched!.CvVersion);
+        Assert.Single(suggestions!, s => s.Equals(cv, StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Fact]
     public async Task Update_Unknown_ReturnsNotFound()
     {
         var response = await _client.PutAsJsonAsync($"/api/applications/{Guid.NewGuid()}", NewRequest(), TestJson.Options);

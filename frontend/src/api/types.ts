@@ -35,7 +35,7 @@ export type CompensationPeriod = (typeof compensationPeriods)[number]
 export const currencies = ['EUR', 'USD', 'GBP', 'UAH', 'PLN', 'CHF'] as const
 export type Currency = (typeof currencies)[number]
 
-export const activityTypes = ['MessageSent', 'ReplyReceived', 'Interview', 'Note'] as const
+export const activityTypes = ['MessageSent', 'ReplyReceived', 'Interview', 'TakeHome', 'Note'] as const
 export type ActivityType = (typeof activityTypes)[number]
 
 export const contactRoles = ['Recruiter', 'Referrer', 'ExColleague', 'HiringManager', 'Other'] as const
@@ -65,6 +65,7 @@ export interface ApplicationDetail {
   company: string
   roleTitle: string
   jobUrl: string | null
+  cvVersion: string | null
   track: Track
   channel: Channel
   status: ApplicationStatus
@@ -94,6 +95,7 @@ export interface SaveApplicationRequest {
   employmentType: EmploymentType
   status: ApplicationStatus | null
   jobUrl: string | null
+  cvVersion: string | null
   remoteRegion: string | null
   hybridCity: string | null
   compensationAmount: number | null

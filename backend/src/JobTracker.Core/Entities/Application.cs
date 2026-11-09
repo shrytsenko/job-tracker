@@ -8,6 +8,9 @@ public class Application
     public string Company { get; private set; } = null!;
     public string RoleTitle { get; private set; } = null!;
     public string? JobUrl { get; set; }
+
+    /// <summary>Which CV version was sent, e.g. "Developer CV v3". Free text with suggestions in the UI.</summary>
+    public string? CvVersion { get; set; }
     public Track Track { get; private set; }
     public Channel Channel { get; private set; }
     public EmploymentType EmploymentType { get; private set; }

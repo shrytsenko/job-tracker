@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import type { FormEvent } from 'react'
+import type { SubmitEvent } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import { ApiError, api } from '../../api/client'
 import { activityTypes } from '../../api/types'
@@ -107,6 +107,8 @@ export function ApplicationDetailPage() {
           <dl className="facts">
             <dt>Track</dt>
             <dd>{label(application.track)}</dd>
+            <dt>CV sent</dt>
+            <dd>{application.cvVersion ?? '—'}</dd>
             <dt>Applied</dt>
             <dd className="tabular">{formatDate(application.appliedOn)}</dd>
             <dt>Last contact</dt>
@@ -189,7 +191,7 @@ function TimelinePanel({ application, mutate }: { application: ApplicationDetail
   const [date, setDate] = useState(todayIso())
   const [text, setText] = useState('')
 
-  const handleSubmit = async (e: FormEvent) => {
+  const handleSubmit = async (e: SubmitEvent) => {
     e.preventDefault()
     if (!text.trim()) return
     await mutate(() => api.addActivity(application.id, { type, text: text.trim(), date: date || null }))
@@ -207,12 +209,21 @@ function TimelinePanel({ application, mutate }: { application: ApplicationDetail
           <input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
         </Field>
         <Field label="What happened" wide>
-          <input value={text} onChange={(e) => setText(e.target.value)} placeholder="Sent CV to recruiter" />
+          <input
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            placeholder={type === 'TakeHome' ? 'Build a small REST API with tests' : 'Sent CV to recruiter'}
+          />
         </Field>
         <button type="submit" className="button button-primary" disabled={!text.trim()}>
           Add
         </button>
       </form>
+      {type === 'TakeHome' && (
+        <p className="hint timeline-hint">
+          Put the deadline in the next action (for example "Submit take-home", due Friday) so it shows up in Follow-ups.
+        </p>
+      )}
 
       {application.activities.length === 0 ? (
         <p className="muted">Nothing logged yet.</p>

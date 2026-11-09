@@ -96,6 +96,7 @@ export const api = {
   getFollowUps: (days: number) => request<FollowUp[]>(`/api/applications/follow-ups${toQuery({ days })}`),
 
   listCompanies: () => request<string[]>('/api/companies'),
+  listCvVersions: () => request<string[]>('/api/applications/cv-versions'),
 
   listContacts: () => request<ContactSummary[]>('/api/contacts'),
   getContact: (id: string) => request<ContactDetail>(`/api/contacts/${id}`),

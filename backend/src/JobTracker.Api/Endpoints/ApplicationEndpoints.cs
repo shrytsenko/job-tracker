@@ -21,6 +21,7 @@ public static class ApplicationEndpoints
         group.MapGet("/follow-ups", FollowUps)
             .DisableValidation()
             .WithSummary("Open applications with no contact for N days (default 5) or a next action due today or earlier");
+        group.MapGet("/cv-versions", CvVersions).WithSummary("Distinct CV version names used so far, for autocomplete");
         group.MapGet("/{id:guid}", GetById).WithName("GetApplication").WithSummary("Get one application with its contacts and timeline");
         group.MapPost("/", Create).WithSummary("Create an application");
         group.MapPut("/{id:guid}", Update).WithSummary("Update an application (full replace of editable fields)");
@@ -98,6 +99,21 @@ public static class ApplicationEndpoints
             .ToList();
 
         return TypedResults.Ok(followUps);
+    }
+
+    private static async Task<Ok<List<string>>> CvVersions(JobTrackerDbContext db, CancellationToken ct)
+    {
+        var versions = await db.Applications
+            .Where(a => a.CvVersion != null)
+            .Select(a => a.CvVersion!)
+            .Distinct()
+            .ToListAsync(ct);
+
+        // Case-insensitive de-duplication, same as company suggestions.
+        return TypedResults.Ok(versions
+            .DistinctBy(v => v, StringComparer.OrdinalIgnoreCase)
+            .Order(StringComparer.OrdinalIgnoreCase)
+            .ToList());
     }
 
     private static async Task<Results<Ok<ApplicationDetailResponse>, NotFound>> GetById(
@@ -232,6 +248,7 @@ public static class ApplicationEndpoints
     private static void Apply(SaveApplicationRequest request, Application application, DateOnly today)
     {
         application.JobUrl = request.JobUrl;
+        application.CvVersion = string.IsNullOrWhiteSpace(request.CvVersion) ? null : request.CvVersion.Trim();
         application.RemoteRegion = request.RemoteRegion;
         application.HybridCity = request.HybridCity;
         application.CompensationAmount = request.CompensationAmount;

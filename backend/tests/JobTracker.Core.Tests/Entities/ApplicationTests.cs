@@ -112,6 +112,7 @@ public class ApplicationTests
     [InlineData(ActivityType.MessageSent)]
     [InlineData(ActivityType.ReplyReceived)]
     [InlineData(ActivityType.Interview)]
+    [InlineData(ActivityType.TakeHome)]
     public void AddActivity_RealInteraction_UpdatesLastContactOn(ActivityType type)
     {
         var application = CreateApplication();

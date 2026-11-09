@@ -1,10 +1,10 @@
 import { useState } from 'react'
-import type { FormEvent } from 'react'
+import type { SubmitEvent } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import { ApiError, api } from '../../api/client'
 import { contactRoles } from '../../api/types'
 import type { ContactDetail, ContactRole, SaveContactRequest } from '../../api/types'
-import { CompanyInput } from '../../components/CompanyInput'
+import { SuggestionInput } from '../../components/SuggestionInput'
 import { ErrorBanner, Loading } from '../../components/Feedback'
 import { Field, Select } from '../../components/Field'
 import { StatusBadge } from '../../components/StatusBadge'
@@ -52,7 +52,7 @@ function ContactForm({ existing }: { existing?: ContactDetail }) {
     setValues((current) => ({ ...current, [key]: value }))
   const fieldErrors = error instanceof ApiError ? error.fieldErrors : {}
 
-  async function handleSubmit(e: FormEvent) {
+  async function handleSubmit(e: SubmitEvent) {
     e.preventDefault()
     setSaving(true)
     setError(undefined)
@@ -115,7 +115,7 @@ function ContactForm({ existing }: { existing?: ContactDetail }) {
             <Select value={values.role} options={contactRoles} onChange={(v) => v && set('role', v)} formatOption={label} />
           </Field>
           <Field label="Company" errors={fieldErrors.company}>
-            <CompanyInput value={values.company} onChange={(v) => set('company', v)} />
+            <SuggestionInput value={values.company} onChange={(v) => set('company', v)} loadSuggestions={api.listCompanies} />
           </Field>
           <Field label="Email" errors={fieldErrors.email}>
             <input type="email" value={values.email} onChange={(e) => set('email', e.target.value)} />

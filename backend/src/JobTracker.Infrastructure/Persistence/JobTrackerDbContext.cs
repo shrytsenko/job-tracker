@@ -20,6 +20,7 @@ public class JobTrackerDbContext(DbContextOptions<JobTrackerDbContext> options) 
             entity.Property(a => a.Company).HasMaxLength(200);
             entity.Property(a => a.RoleTitle).HasMaxLength(200);
             entity.Property(a => a.JobUrl).HasMaxLength(2000);
+            entity.Property(a => a.CvVersion).HasMaxLength(100);
             entity.Property(a => a.RemoteRegion).HasMaxLength(100);
             entity.Property(a => a.HybridCity).HasMaxLength(100);
             entity.Property(a => a.CompensationCurrency).HasConversion<string>().HasMaxLength(3);

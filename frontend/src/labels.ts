@@ -7,6 +7,7 @@ const overrides: Record<string, string> = {
   CompanyWebsite: 'Company website',
   ExColleague: 'Ex-colleague',
   NoResponse: 'No response',
+  TakeHome: 'Take-home',
 }
 
 export function label(value: string): string {

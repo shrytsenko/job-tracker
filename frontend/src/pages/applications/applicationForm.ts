@@ -17,6 +17,7 @@ export interface ApplicationFormValues {
   company: string
   roleTitle: string
   jobUrl: string
+  cvVersion: string
   track: Track
   channel: Channel
   employmentType: EmploymentType
@@ -39,6 +40,7 @@ export const emptyApplicationForm: ApplicationFormValues = {
   company: '',
   roleTitle: '',
   jobUrl: '',
+  cvVersion: '',
   track: 'Developer',
   channel: 'LinkedIn',
   employmentType: 'Permanent',
@@ -61,6 +63,7 @@ export function formFromDetail(a: ApplicationDetail): ApplicationFormValues {
     company: a.company,
     roleTitle: a.roleTitle,
     jobUrl: a.jobUrl ?? '',
+    cvVersion: a.cvVersion ?? '',
     track: a.track,
     channel: a.channel,
     employmentType: a.employmentType,
@@ -86,6 +89,7 @@ export function requestFromForm(v: ApplicationFormValues): SaveApplicationReques
     company: v.company.trim(),
     roleTitle: v.roleTitle.trim(),
     jobUrl: orNull(v.jobUrl),
+    cvVersion: orNull(v.cvVersion),
     track: v.track,
     channel: v.channel,
     employmentType: v.employmentType,

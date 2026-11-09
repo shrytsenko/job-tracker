@@ -92,6 +92,10 @@ namespace JobTracker.Infrastructure.Persistence.Migrations
                         .HasMaxLength(30)
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("CvVersion")
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("EmploymentType")
                         .IsRequired()
                         .HasMaxLength(30)

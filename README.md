@@ -94,6 +94,7 @@ cd frontend && npm run lint        # oxlint
 | PUT / DELETE | `/api/applications/{id}/contacts/{contactId}` | Link / unlink a contact |
 | GET, POST | `/api/contacts` | List / create contacts |
 | GET, PUT, DELETE | `/api/contacts/{id}` | Read / update / delete a contact |
+| GET | `/api/applications/cv-versions` | Distinct CV version names used so far (for autocomplete) |
 | GET | `/api/companies` | Distinct company names from applications and contacts (for autocomplete) |
 
 Enums travel as strings (`"Applied"`, `"SDET"`, `"EUR"`). Errors follow [RFC 9457 ProblemDetails](https://www.rfc-editor.org/rfc/rfc9457); validation errors list the offending fields under `errors`.

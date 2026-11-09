@@ -1,10 +1,10 @@
 import { useState } from 'react'
-import type { FormEvent } from 'react'
+import type { SubmitEvent } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import { ApiError, api } from '../../api/client'
 import { applicationStatuses, channels, compensationPeriods, currencies, employmentTypes, tracks } from '../../api/types'
 import type { ApplicationDetail } from '../../api/types'
-import { CompanyInput } from '../../components/CompanyInput'
+import { SuggestionInput } from '../../components/SuggestionInput'
 import { ErrorBanner, Loading } from '../../components/Feedback'
 import { Field, Select } from '../../components/Field'
 import { useAsync } from '../../hooks/useAsync'
@@ -40,7 +40,7 @@ function ApplicationForm({ existing }: { existing?: ApplicationDetail }) {
 
   const fieldErrors = error instanceof ApiError ? error.fieldErrors : {}
 
-  async function handleSubmit(e: FormEvent) {
+  async function handleSubmit(e: SubmitEvent) {
     e.preventDefault()
     setSaving(true)
     setError(undefined)
@@ -68,13 +68,16 @@ function ApplicationForm({ existing }: { existing?: ApplicationDetail }) {
         <fieldset>
           <legend>Role</legend>
           <Field label="Company *" errors={fieldErrors.company}>
-            <CompanyInput value={values.company} onChange={(v) => set('company', v)} autoFocus />
+            <SuggestionInput value={values.company} onChange={(v) => set('company', v)} loadSuggestions={api.listCompanies} autoFocus />
           </Field>
           <Field label="Role title *" errors={fieldErrors.roleTitle}>
             <input value={values.roleTitle} onChange={(e) => set('roleTitle', e.target.value)} required />
           </Field>
           <Field label="Job URL" errors={fieldErrors.jobUrl} wide>
             <input type="url" value={values.jobUrl} onChange={(e) => set('jobUrl', e.target.value)} placeholder="https://…" />
+          </Field>
+          <Field label="CV sent" errors={fieldErrors.cvVersion}>
+            <SuggestionInput value={values.cvVersion} onChange={(v) => set('cvVersion', v)} loadSuggestions={api.listCvVersions} placeholder="Developer CV v3" />
           </Field>
           <Field label="Status">
             <Select value={values.status} options={applicationStatuses} onChange={(v) => v && set('status', v)} formatOption={label} />

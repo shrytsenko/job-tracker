@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import type { FormEvent } from 'react'
+import type { SubmitEvent } from 'react'
 import { api } from '../../api/client'
 import { activityTypes } from '../../api/types'
 import type { ActivityType, ApplicationDetail } from '../../api/types'
@@ -97,7 +97,7 @@ function CompleteForm({
   const [date, setDate] = useState(todayIso())
   const [saving, setSaving] = useState(false)
 
-  const handleSubmit = async (e: FormEvent) => {
+  const handleSubmit = async (e: SubmitEvent) => {
     e.preventDefault()
     setSaving(true)
     await onComplete(type, date || null)
@@ -154,7 +154,7 @@ function EditForm({
     setSaving(false)
   }
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = (e: SubmitEvent) => {
     e.preventDefault()
     void save(description.trim() || null, dueOn || null)
   }

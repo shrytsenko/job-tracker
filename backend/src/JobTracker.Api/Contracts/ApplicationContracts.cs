@@ -14,6 +14,7 @@ public record SaveApplicationRequest(
     EmploymentType EmploymentType,
     ApplicationStatus? Status = null,
     [Url, MaxLength(2000)] string? JobUrl = null,
+    [MaxLength(100)] string? CvVersion = null,
     [MaxLength(100)] string? RemoteRegion = null,
     [MaxLength(100)] string? HybridCity = null,
     [Range(0, 100_000_000)] decimal? CompensationAmount = null,
@@ -67,6 +68,7 @@ public record ApplicationDetailResponse(
     string Company,
     string RoleTitle,
     string? JobUrl,
+    string? CvVersion,
     Track Track,
     Channel Channel,
     ApplicationStatus Status,
@@ -87,7 +89,7 @@ public record ApplicationDetailResponse(
     IReadOnlyList<ActivityResponse> Activities)
 {
     public static ApplicationDetailResponse From(Application a) => new(
-        a.Id, a.Company, a.RoleTitle, a.JobUrl, a.Track, a.Channel, a.Status, a.FurthestStage, a.EmploymentType,
+        a.Id, a.Company, a.RoleTitle, a.JobUrl, a.CvVersion, a.Track, a.Channel, a.Status, a.FurthestStage, a.EmploymentType,
         a.RemoteRegion, a.HybridCity,
         a.CompensationAmount, a.CompensationCurrency, a.CompensationPeriod, a.CompensationIsNet,
         a.AppliedOn, a.LastContactOn, a.NextActionDescription, a.NextActionDueOn, a.Notes,
