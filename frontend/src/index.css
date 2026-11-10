@@ -146,7 +146,7 @@ a:hover {
 /* The logo is 500x120; at 36px tall it fits the 56px top bar with some air around it. */
 .brand img {
   display: block;
-  height: 3.5rem;
+  height: 3rem;
   width: auto;
 }
 
@@ -1229,6 +1229,207 @@ a.button-sm:hover {
 
   .bar-tooltip {
     left: 0;
+  }
+}
+
+/* ---------- Job analysis ---------- */
+
+.analysis-intro {
+  margin: 0 0 0.6rem;
+  max-width: 68ch;
+}
+
+.analysis-form textarea {
+  width: 100%;
+}
+
+.analysis-result {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Red flags first and loudest: the main reason to analyse a post. */
+.red-flags {
+  border: 1px solid color-mix(in srgb, var(--danger) 35%, transparent);
+  border-left: 4px solid var(--danger);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  background: var(--error-bg);
+  padding: 0.75rem 1rem;
+}
+
+.red-flags h3 {
+  margin: 0 0 0.35rem;
+  font-size: var(--step-0);
+  color: var(--danger);
+}
+
+.red-flags ul {
+  margin: 0;
+  padding-left: 1.1rem;
+}
+
+.red-flags li + li {
+  margin-top: 0.2rem;
+}
+
+.analysis-summary {
+  display: grid;
+  grid-template-columns: minmax(11rem, auto) 1fr;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.match-score {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.match-value {
+  font-size: var(--step-3);
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.match-label {
+  font-size: var(--step--1);
+  color: var(--muted);
+}
+
+.match-bar {
+  display: block;
+  height: 6px;
+  margin-top: 0.3rem;
+  border-radius: 3px;
+  background: var(--border);
+  overflow: hidden;
+}
+
+.match-bar span {
+  display: block;
+  height: 100%;
+  border-radius: 3px;
+}
+
+.match-good .match-bar span {
+  background: var(--accent);
+}
+
+.match-fair .match-bar span {
+  background: var(--signal);
+}
+
+.match-low .match-bar span {
+  background: var(--danger);
+}
+
+.analysis-facts {
+  gap: 0.35rem 1rem;
+}
+
+.stack-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.stack-list li {
+  padding: 0.15rem 0.6rem;
+  border-radius: 999px;
+  background: var(--tone-neutral-bg);
+  color: var(--tone-neutral-fg);
+  font-size: var(--step--1);
+  font-weight: 500;
+}
+
+.fit-columns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.5rem;
+}
+
+.fit-list h3 {
+  margin: 0 0 0.35rem;
+  font-size: var(--step-0);
+}
+
+.fit-list ul {
+  margin: 0;
+  padding-left: 1.1rem;
+}
+
+.fit-list li + li {
+  margin-top: 0.2rem;
+}
+
+.analysis-footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border);
+  font-size: var(--step--1);
+}
+
+.analysis-footer .next-action-buttons {
+  margin-top: 0;
+}
+
+/* ---------- Profile ---------- */
+
+.profile {
+  max-width: 760px;
+}
+
+.profile-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.profile-form textarea {
+  width: 100%;
+  line-height: 1.55;
+}
+
+.field-hint {
+  font-size: var(--step--1);
+  color: var(--muted);
+  text-align: right;
+}
+
+.profile-tips h2 {
+  margin-bottom: 0.4rem;
+}
+
+.profile-tips ul {
+  margin: 0 0 0.6rem;
+  padding-left: 1.1rem;
+}
+
+.profile-tips li + li {
+  margin-top: 0.2rem;
+}
+
+.profile-tips .muted {
+  margin: 0;
+  font-size: var(--step--1);
+}
+
+.profile-form .form-actions {
+  align-items: center;
+}
+
+@media (max-width: 760px) {
+  .analysis-summary,
+  .fit-columns {
+    grid-template-columns: 1fr;
   }
 }
 
