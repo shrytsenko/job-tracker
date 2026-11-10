@@ -17,6 +17,7 @@ public static class DependencyInjection
         services.AddSingleton(anthropicOptions);
         services.AddSingleton<ILlmClient, AnthropicLlmClient>();
         services.AddScoped<JobAnalyzer>();
+        services.AddScoped<ReplyDrafter>();
 
         return services;
     }

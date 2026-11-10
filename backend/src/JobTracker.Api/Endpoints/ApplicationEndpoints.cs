@@ -33,6 +33,9 @@ public static class ApplicationEndpoints
         group.MapPost("/{id:guid}/analysis", Analyze)
             .WithSummary("Analyse the job post with AI against your CV summary (saves the post text, replaces the previous analysis)");
 
+        group.MapPost("/{id:guid}/reply-draft", DraftReply)
+            .WithSummary("Draft a reply to a recruiter with AI (returns editable text; nothing is sent)");
+
         group.MapPut("/{id:guid}/next-action", SetNextAction).WithSummary("Set or clear the next action (empty description clears it)");
         group.MapPost("/{id:guid}/next-action/complete", CompleteNextAction)
             .WithSummary("Mark the next action done: logs \"Done: …\" on the timeline and clears it");
@@ -257,6 +260,51 @@ public static class ApplicationEndpoints
         }
 
         return TypedResults.Ok(ApplicationDetailResponse.From(application));
+    }
+
+    private static async Task<Results<Ok<ReplyDraftResponse>, NotFound, ValidationProblem, ProblemHttpResult>> DraftReply(
+        Guid id, DraftReplyRequest request, JobTrackerDbContext db, ReplyDrafter drafter, ILogger<ReplyDrafter> logger,
+        CancellationToken ct)
+    {
+        var application = await LoadWithDetailsAsync(db, id, ct);
+        if (application is null) return TypedResults.NotFound();
+
+        var recipient = request.ContactId is { } contactId ? application.Contacts.FirstOrDefault(c => c.Id == contactId) : null;
+        if (request.ContactId is not null && recipient is null)
+        {
+            return TypedResults.ValidationProblem(new Dictionary<string, string[]>
+            {
+                ["contactId"] = ["Choose one of the contacts linked to this application."],
+            });
+        }
+
+        // The CV summary and name are optional for drafts: a reply can be written from the application alone.
+        var profile = await db.Profiles.FindAsync([Profile.SingletonId], ct);
+
+        var context = new ReplyContext(
+            application.Company,
+            application.RoleTitle,
+            application.Status,
+            application.NextActionDescription,
+            application.JobDescription,
+            application.Analysis,
+            profile?.CvSummary,
+            profile?.FullName,
+            recipient?.Name,
+            recipient?.Role,
+            request.TheirMessage,
+            request.Intent);
+
+        try
+        {
+            var draft = await drafter.DraftAsync(context, request.Channel, request.Tone, ct);
+            return TypedResults.Ok(new ReplyDraftResponse(draft.Subject, draft.Body, draft.Model));
+        }
+        catch (LlmException ex)
+        {
+            logger.LogWarning("Reply draft for application {ApplicationId} failed: {Failure}", id, ex.Failure);
+            return TypedResults.Problem(statusCode: StatusFor(ex.Failure), title: "Draft failed", detail: ex.Message);
+        }
     }
 
     private static int StatusFor(LlmFailure failure) => failure switch

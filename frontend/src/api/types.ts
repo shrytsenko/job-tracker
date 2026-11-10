@@ -220,6 +220,29 @@ export interface JobAnalysis {
 
 export interface Profile {
   cvSummary: string
+  /** Used to sign reply drafts. */
+  fullName: string | null
   /** Null until the profile has been saved once. */
   updatedAt: string | null
+}
+
+export const replyChannels = ['LinkedIn', 'Email'] as const
+export type ReplyChannel = (typeof replyChannels)[number]
+
+export const replyTones = ['Short', 'Detailed'] as const
+export type ReplyTone = (typeof replyTones)[number]
+
+export interface DraftReplyRequest {
+  channel: ReplyChannel
+  tone: ReplyTone
+  contactId: string | null
+  theirMessage: string | null
+  intent: string | null
+}
+
+export interface ReplyDraft {
+  /** Email subject; null for LinkedIn. */
+  subject: string | null
+  body: string
+  model: string
 }

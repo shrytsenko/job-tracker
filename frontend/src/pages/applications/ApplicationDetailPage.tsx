@@ -12,6 +12,7 @@ import { formatDate, label, todayIso } from '../../labels'
 import { requestWithStatus } from './applicationForm'
 import { JobAnalysisSection } from './JobAnalysisSection'
 import { NextActionSection } from './NextActionSection'
+import { ReplyDraftSection } from './ReplyDraftSection'
 
 export function ApplicationDetailPage() {
   const { id = '' } = useParams()
@@ -97,6 +98,8 @@ export function ApplicationDetailPage() {
           <NextActionSection application={application} mutate={mutate} />
 
           <JobAnalysisSection application={application} onAnalyzed={reload} />
+
+          <ReplyDraftSection application={application} onLogged={reload} />
 
           <section className="detail-section">
             <h2>Notes</h2>

@@ -20,6 +20,7 @@ export function ProfilePage() {
 
 function ProfileForm({ profile }: { profile: Profile }) {
   const [cvSummary, setCvSummary] = useState(profile.cvSummary)
+  const [fullName, setFullName] = useState(profile.fullName ?? '')
   const [savedAt, setSavedAt] = useState(profile.updatedAt)
   const [saving, setSaving] = useState(false)
   const [justSaved, setJustSaved] = useState(false)
@@ -36,8 +37,9 @@ function ProfileForm({ profile }: { profile: Profile }) {
     setSaving(true)
     setError(undefined)
     try {
-      const saved = await api.saveProfile(cvSummary)
+      const saved = await api.saveProfile(cvSummary, fullName.trim() || null)
       setCvSummary(saved.cvSummary)
+      setFullName(saved.fullName ?? '')
       setSavedAt(saved.updatedAt)
       setJustSaved(true)
     } catch (err) {
@@ -58,6 +60,11 @@ function ProfileForm({ profile }: { profile: Profile }) {
 
       <form className="profile-form" onSubmit={handleSubmit}>
         <ErrorBanner error={error} />
+
+        <label className="field profile-name">
+          <span className="field-label">Your name</span>
+          <input value={fullName} onChange={(e) => setFullName(e.target.value)} maxLength={100} placeholder="Used to sign reply drafts" />
+        </label>
 
         <label className="field">
           <span className="field-label">CV summary</span>

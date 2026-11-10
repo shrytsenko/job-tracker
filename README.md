@@ -26,7 +26,7 @@ So I'm building the tool I needed, and using it as a showcase of how I approach 
 - [x] "Needs follow-up" view for stale applications and overdue actions
 - [x] Dashboard with a funnel and conversion rates per track
 - [x] AI job description analysis: stack, seniority, location restrictions, match score, red flags
-- [ ] AI-drafted replies to recruiters (always editable, never sent automatically)
+- [x] AI-drafted replies to recruiters (always editable, never sent automatically)
 - [ ] MCP server so AI assistants like Claude can read and update the tracker
 
 ## Tech stack
@@ -47,7 +47,7 @@ So I'm building the tool I needed, and using it as a showcase of how I approach 
 2. ✅ **React UI** — list, filters, detail page, follow-up view
 3. ✅ **Dashboard** — funnel and conversion per track
 4. ✅ **AI job analysis** — structured analysis of pasted job descriptions
-5. **AI reply drafts** — recruiter messages and emails
+5. ✅ **AI reply drafts** — recruiter messages and emails
 6. **MCP server** — manage the tracker from Claude
 7. **Portfolio polish** — CI badge, Docker, screenshots, architecture diagram
 
@@ -110,6 +110,10 @@ dotnet user-secrets set Anthropic:ApiKey "<your key>" --project backend/src/JobT
 
 In Docker, put it in `.env` as `ANTHROPIC_API_KEY=...`. Without a key the app works normally and analysis says it is not configured. Each analysis costs a few cents; the model and effort are settings (`Anthropic:Model`, default `claude-opus-5-5`; `Anthropic:Effort`, default `medium`).
 
+### AI reply drafts
+
+Under **Reply** on an application, pick the recipient (one of its linked contacts), LinkedIn or email, short or detailed, optionally paste their message and say what you want to get across, then **Draft reply**. The draft answers in the language of their message, uses only facts from your CV and the application, and leaves [placeholders] for anything it does not know (salary, start date). Edit it, **Copy** it, send it yourself, then **Log as sent** to add a "Message sent" entry to the timeline. The app never sends anything.
+
 ### Demo data
 
 To try the app with realistic numbers without touching your own data, start the API with the **demo** profile:
@@ -149,7 +153,8 @@ cd frontend && npm run lint        # oxlint
 | GET, PUT, DELETE | `/api/contacts/{id}` | Read / update / delete a contact |
 | GET | `/api/applications/cv-versions` | Distinct CV version names used so far (for autocomplete) |
 | POST | `/api/applications/{id}/analysis` | Analyse the pasted job post with AI against your CV summary (saves the post, replaces the previous analysis) |
-| GET, PUT | `/api/profile` | Your CV summary, the context for the match score |
+| POST | `/api/applications/{id}/reply-draft` | Draft a LinkedIn message or email to a linked contact with AI (returns editable text; nothing is sent) |
+| GET, PUT | `/api/profile` | Your name and CV summary, the context for analyses and drafts |
 | GET | `/api/dashboard` | Counts per status and track, and a funnel per track with conversion rates |
 | GET | `/api/companies` | Distinct company names from applications and contacts (for autocomplete) |
 

@@ -11,10 +11,18 @@ public class OutputSchemaTests
     private static readonly string[] UnsupportedKeywords =
         ["minimum", "maximum", "exclusiveMinimum", "exclusiveMaximum", "multipleOf", "minLength", "maxLength", "pattern"];
 
-    [Fact]
-    public void OutputSchema_UsesOnlySupportedJsonSchemaFeatures()
+    public static TheoryData<string, string> Schemas => new()
     {
-        using var document = JsonDocument.Parse(JobAnalyzer.OutputSchema);
+        { nameof(JobAnalyzer), JobAnalyzer.OutputSchema },
+        { nameof(ReplyDrafter), ReplyDrafter.OutputSchema },
+    };
+
+    [Theory]
+    [MemberData(nameof(Schemas))]
+    public void OutputSchema_UsesOnlySupportedJsonSchemaFeatures(string owner, string schema)
+    {
+        Assert.False(string.IsNullOrEmpty(owner));
+        using var document = JsonDocument.Parse(schema);
         var problems = new List<string>();
 
         Walk(document.RootElement, "$", problems);

@@ -16,6 +16,7 @@ public class JobTrackerDbContext(DbContextOptions<JobTrackerDbContext> options) 
         {
             entity.Property(p => p.Id).ValueGeneratedNever();
             entity.Property(p => p.CvSummary).HasMaxLength(Profile.MaxCvSummaryLength);
+            entity.Property(p => p.FullName).HasMaxLength(Profile.MaxFullNameLength);
         });
 
         modelBuilder.Entity<Application>(entity =>

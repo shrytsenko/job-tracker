@@ -9,7 +9,9 @@ import type {
   DashboardStats,
   ContactSummary,
   FollowUp,
+  DraftReplyRequest,
   Profile,
+  ReplyDraft,
   SaveApplicationRequest,
   SaveContactRequest,
   SetNextActionRequest,
@@ -104,7 +106,11 @@ export const api = {
     }),
 
   getProfile: () => request<Profile>('/api/profile'),
-  saveProfile: (cvSummary: string) => request<Profile>('/api/profile', { method: 'PUT', body: json({ cvSummary }) }),
+  saveProfile: (cvSummary: string, fullName: string | null) =>
+    request<Profile>('/api/profile', { method: 'PUT', body: json({ cvSummary, fullName }) }),
+
+  draftReply: (applicationId: string, body: DraftReplyRequest) =>
+    request<ReplyDraft>(`/api/applications/${applicationId}/reply-draft`, { method: 'POST', body: json(body) }),
 
   getDashboard: () => request<DashboardStats>('/api/dashboard'),
 

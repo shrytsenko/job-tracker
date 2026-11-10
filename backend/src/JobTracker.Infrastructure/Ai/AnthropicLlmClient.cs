@@ -42,7 +42,7 @@ public sealed class AnthropicLlmClient : ILlmClient
         if (_client is null)
         {
             throw new LlmException(LlmFailure.NotConfigured,
-                "AI analysis is not configured. Set the Anthropic API key (Anthropic:ApiKey) and restart the API.");
+                "AI features are not configured. Set the Anthropic API key (Anthropic:ApiKey) and restart the API.");
         }
 
         var parameters = new MessageCreateParams

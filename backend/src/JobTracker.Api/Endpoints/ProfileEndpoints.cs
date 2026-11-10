@@ -21,8 +21,8 @@ public static class ProfileEndpoints
     {
         var profile = await db.Profiles.FindAsync([Profile.SingletonId], ct);
         return TypedResults.Ok(profile is null
-            ? new ProfileResponse(string.Empty, null)
-            : new ProfileResponse(profile.CvSummary, profile.UpdatedAt));
+            ? new ProfileResponse(string.Empty, null, null)
+            : new ProfileResponse(profile.CvSummary, profile.FullName, profile.UpdatedAt));
     }
 
     private static async Task<Ok<ProfileResponse>> Save(
@@ -35,9 +35,9 @@ public static class ProfileEndpoints
             db.Profiles.Add(profile);
         }
 
-        profile.UpdateCvSummary(request.CvSummary, clock.GetUtcNow());
+        profile.Update(request.CvSummary, request.FullName, clock.GetUtcNow());
         await db.SaveChangesAsync(ct);
 
-        return TypedResults.Ok(new ProfileResponse(profile.CvSummary, profile.UpdatedAt));
+        return TypedResults.Ok(new ProfileResponse(profile.CvSummary, profile.FullName, profile.UpdatedAt));
     }
 }

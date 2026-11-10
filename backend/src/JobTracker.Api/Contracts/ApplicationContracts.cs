@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using JobTracker.Core.Ai;
 using JobTracker.Core.Entities;
 using JobTracker.Core.Enums;
 
@@ -113,6 +114,20 @@ public record ActivityResponse(Guid Id, ActivityType Type, string Text, DateOnly
 {
     public static ActivityResponse From(Activity x) => new(x.Id, x.Type, x.Text, x.Date);
 }
+
+/// <summary>Body for drafting a reply. Every field is optional; the more context, the better the draft.</summary>
+/// <param name="ContactId">One of the contacts linked to the application, used as the recipient.</param>
+/// <param name="TheirMessage">The recruiter's message to reply to, pasted in.</param>
+/// <param name="Intent">What you want to say, e.g. "interested, ask about the salary range".</param>
+public record DraftReplyRequest(
+    ReplyChannel Channel = ReplyChannel.LinkedIn,
+    ReplyTone Tone = ReplyTone.Short,
+    Guid? ContactId = null,
+    [MaxLength(10000)] string? TheirMessage = null,
+    [MaxLength(2000)] string? Intent = null);
+
+/// <param name="Subject">Email subject; null for LinkedIn.</param>
+public record ReplyDraftResponse(string? Subject, string Body, string Model);
 
 /// <summary>Body for analysing an application's job post.</summary>
 /// <param name="JobDescription">The pasted job post. Omit (null) to re-analyse the text already saved on the application.</param>

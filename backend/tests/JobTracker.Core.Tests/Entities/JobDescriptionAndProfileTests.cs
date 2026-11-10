@@ -81,21 +81,33 @@ public class JobDescriptionAndProfileTests
     }
 
     [Fact]
-    public void Profile_UpdateCvSummary_TrimsAndStampsTime()
+    public void Profile_Update_TrimsAndStampsTime()
     {
         var profile = new Profile();
 
-        profile.UpdateCvSummary("  Senior .NET developer  ", Now);
+        profile.Update("  Senior .NET developer  ", "  Alex Doe ", Now);
 
         Assert.Equal("Senior .NET developer", profile.CvSummary);
+        Assert.Equal("Alex Doe", profile.FullName);
         Assert.Equal(Now, profile.UpdatedAt);
         Assert.True(profile.HasCvSummary);
     }
 
     [Fact]
-    public void Profile_UpdateCvSummary_TooLong_Throws()
+    public void Profile_Update_BlankNameBecomesNull()
     {
-        Assert.Throws<ArgumentException>(() => new Profile().UpdateCvSummary(new string('x', Profile.MaxCvSummaryLength + 1), Now));
+        var profile = new Profile();
+
+        profile.Update("CV", "   ", Now);
+
+        Assert.Null(profile.FullName);
+    }
+
+    [Fact]
+    public void Profile_Update_TooLong_Throws()
+    {
+        Assert.Throws<ArgumentException>(() => new Profile().Update(new string('x', Profile.MaxCvSummaryLength + 1), null, Now));
+        Assert.Throws<ArgumentException>(() => new Profile().Update("CV", new string('x', Profile.MaxFullNameLength + 1), Now));
     }
 
     private static Application CreateApplication() =>
