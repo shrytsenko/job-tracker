@@ -1,4 +1,5 @@
-import { NavLink, Outlet, useLocation } from 'react-router'
+import { Link, NavLink, Outlet, useLocation } from 'react-router'
+import logoUrl from '../assets/logo.svg'
 import { api } from '../api/client'
 import { useAsync } from '../hooks/useAsync'
 
@@ -11,7 +12,9 @@ export function Layout() {
   return (
     <div className="app">
       <header className="topbar">
-        <span className="brand">Job Tracker</span>
+        <Link to="/" className="brand">
+          <img src={logoUrl} alt="Job Tracker" />
+        </Link>
         <nav>
           <NavLink to="/" end>
             Applications

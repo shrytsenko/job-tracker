@@ -1,4 +1,5 @@
 using JobTracker.Api.Contracts;
+using JobTracker.Core.Ai;
 using JobTracker.Core.Entities;
 using JobTracker.Core.Enums;
 using JobTracker.Infrastructure.Persistence;
@@ -28,6 +29,9 @@ public static class ApplicationEndpoints
         group.MapDelete("/{id:guid}", Delete).WithSummary("Delete an application and its timeline");
 
         group.MapPost("/{id:guid}/activities", AddActivity).WithSummary("Add a timeline entry");
+
+        group.MapPost("/{id:guid}/analysis", Analyze)
+            .WithSummary("Analyse the job post with AI against your CV summary (saves the post text, replaces the previous analysis)");
 
         group.MapPut("/{id:guid}/next-action", SetNextAction).WithSummary("Set or clear the next action (empty description clears it)");
         group.MapPost("/{id:guid}/next-action/complete", CompleteNextAction)
@@ -209,6 +213,60 @@ public static class ApplicationEndpoints
 
         return TypedResults.Ok(ApplicationDetailResponse.From(application));
     }
+
+    private static async Task<Results<Ok<ApplicationDetailResponse>, NotFound, ValidationProblem, ProblemHttpResult>> Analyze(
+        Guid id, AnalyzeJobRequest request, JobTrackerDbContext db, JobAnalyzer analyzer, TimeProvider clock,
+        ILogger<JobAnalyzer> logger, CancellationToken ct)
+    {
+        var application = await LoadWithDetailsAsync(db, id, ct);
+        if (application is null) return TypedResults.NotFound();
+
+        var jobDescription = string.IsNullOrWhiteSpace(request.JobDescription) ? application.JobDescription : request.JobDescription;
+        if (string.IsNullOrWhiteSpace(jobDescription))
+        {
+            return TypedResults.ValidationProblem(new Dictionary<string, string[]>
+            {
+                ["jobDescription"] = ["Paste the job post to analyse."],
+            });
+        }
+
+        var profile = await db.Profiles.FindAsync([Profile.SingletonId], ct);
+        if (profile is not { HasCvSummary: true })
+        {
+            return TypedResults.Problem(
+                statusCode: StatusCodes.Status409Conflict,
+                title: "CV summary missing",
+                detail: "Add your CV summary on the Profile page first, so the job post can be compared with it.");
+        }
+
+        // Save the pasted text first, so it is never lost if the AI call fails.
+        application.SetJobDescription(jobDescription);
+        await db.SaveChangesAsync(ct);
+
+        try
+        {
+            var analysis = await analyzer.AnalyzeAsync(application.JobDescription!, profile.CvSummary, clock.GetUtcNow(), ct);
+            application.RecordAnalysis(analysis);
+            await db.SaveChangesAsync(ct);
+        }
+        catch (LlmException ex)
+        {
+            // The job text and CV are deliberately not logged (personal data); the failure kind is enough to diagnose.
+            logger.LogWarning("Job analysis for application {ApplicationId} failed: {Failure}", id, ex.Failure);
+            return TypedResults.Problem(statusCode: StatusFor(ex.Failure), title: "Analysis failed", detail: ex.Message);
+        }
+
+        return TypedResults.Ok(ApplicationDetailResponse.From(application));
+    }
+
+    private static int StatusFor(LlmFailure failure) => failure switch
+    {
+        LlmFailure.NotConfigured => StatusCodes.Status503ServiceUnavailable,
+        LlmFailure.Timeout => StatusCodes.Status504GatewayTimeout,
+        LlmFailure.RateLimited => StatusCodes.Status429TooManyRequests,
+        LlmFailure.Refused => StatusCodes.Status422UnprocessableEntity,
+        _ => StatusCodes.Status502BadGateway, // InvalidOutput, ProviderError: the upstream service gave us nothing usable
+    };
 
     private static Task<Application?> LoadWithDetailsAsync(JobTrackerDbContext db, Guid id, CancellationToken ct) =>
         db.Applications

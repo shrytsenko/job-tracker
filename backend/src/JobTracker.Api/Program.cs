@@ -2,6 +2,7 @@ using System.Text.Json.Serialization;
 using JobTracker.Api.Endpoints;
 using JobTracker.Api.ErrorHandling;
 using JobTracker.Infrastructure;
+using JobTracker.Infrastructure.Ai;
 using JobTracker.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
@@ -27,7 +28,11 @@ if (!string.IsNullOrWhiteSpace(databaseName))
     connectionString = new NpgsqlConnectionStringBuilder(connectionString) { Database = databaseName }.ConnectionString;
 }
 
-builder.Services.AddInfrastructure(connectionString);
+// AI settings: the API key comes from user secrets (Anthropic:ApiKey) or the Anthropic__ApiKey environment
+// variable. Without a key the app still runs; AI features report that they are not configured.
+var anthropicOptions = builder.Configuration.GetSection(AnthropicOptions.SectionName).Get<AnthropicOptions>() ?? new AnthropicOptions();
+
+builder.Services.AddInfrastructure(connectionString, anthropicOptions);
 
 // Enums travel as strings ("Applied", not 2) — readable in Swagger and stable for the UI.
 // Integer values are rejected so a typo like 99 can't sneak in as an undefined enum.
@@ -82,5 +87,6 @@ app.MapApplicationEndpoints();
 app.MapContactEndpoints();
 app.MapCompanyEndpoints();
 app.MapDashboardEndpoints();
+app.MapProfileEndpoints();
 
 app.Run();

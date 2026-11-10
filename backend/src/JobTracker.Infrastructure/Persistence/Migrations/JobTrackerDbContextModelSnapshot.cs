@@ -114,6 +114,10 @@ namespace JobTracker.Infrastructure.Persistence.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
+                    b.Property<string>("JobDescription")
+                        .HasMaxLength(30000)
+                        .HasColumnType("character varying(30000)");
+
                     b.Property<string>("JobUrl")
                         .HasMaxLength(2000)
                         .HasColumnType("character varying(2000)");
@@ -197,6 +201,24 @@ namespace JobTracker.Infrastructure.Persistence.Migrations
                     b.ToTable("Contacts");
                 });
 
+            modelBuilder.Entity("JobTracker.Core.Entities.Profile", b =>
+                {
+                    b.Property<int>("Id")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("CvSummary")
+                        .IsRequired()
+                        .HasMaxLength(8000)
+                        .HasColumnType("character varying(8000)");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Profiles");
+                });
+
             modelBuilder.Entity("ApplicationContact", b =>
                 {
                     b.HasOne("JobTracker.Core.Entities.Application", null)
@@ -219,6 +241,67 @@ namespace JobTracker.Infrastructure.Persistence.Migrations
                         .HasForeignKey("ApplicationId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("JobTracker.Core.Entities.Application", b =>
+                {
+                    b.OwnsOne("JobTracker.Core.Entities.JobAnalysis", "Analysis", b1 =>
+                        {
+                            b1.Property<Guid>("ApplicationId")
+                                .HasColumnType("uuid");
+
+                            b1.Property<DateTimeOffset>("AnalyzedAt")
+                                .HasColumnType("timestamp with time zone");
+
+                            b1.Property<string>("EmploymentType")
+                                .HasMaxLength(300)
+                                .HasColumnType("character varying(300)");
+
+                            b1.PrimitiveCollection<string[]>("Gaps")
+                                .IsRequired()
+                                .HasColumnType("text[]");
+
+                            b1.Property<string>("LocationRestrictions")
+                                .HasMaxLength(300)
+                                .HasColumnType("character varying(300)");
+
+                            b1.Property<int>("MatchScore")
+                                .HasColumnType("integer");
+
+                            b1.Property<string>("Model")
+                                .IsRequired()
+                                .HasMaxLength(100)
+                                .HasColumnType("character varying(100)");
+
+                            b1.PrimitiveCollection<string[]>("RedFlags")
+                                .IsRequired()
+                                .HasColumnType("text[]");
+
+                            b1.Property<string>("Salary")
+                                .HasMaxLength(300)
+                                .HasColumnType("character varying(300)");
+
+                            b1.Property<string>("Seniority")
+                                .HasMaxLength(300)
+                                .HasColumnType("character varying(300)");
+
+                            b1.PrimitiveCollection<string[]>("Stack")
+                                .IsRequired()
+                                .HasColumnType("text[]");
+
+                            b1.PrimitiveCollection<string[]>("Strengths")
+                                .IsRequired()
+                                .HasColumnType("text[]");
+
+                            b1.HasKey("ApplicationId");
+
+                            b1.ToTable("JobAnalyses", (string)null);
+
+                            b1.WithOwner()
+                                .HasForeignKey("ApplicationId");
+                        });
+
+                    b.Navigation("Analysis");
                 });
 
             modelBuilder.Entity("JobTracker.Core.Entities.Application", b =>

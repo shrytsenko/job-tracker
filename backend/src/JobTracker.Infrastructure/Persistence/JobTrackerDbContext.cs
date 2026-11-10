@@ -8,11 +8,32 @@ public class JobTrackerDbContext(DbContextOptions<JobTrackerDbContext> options) 
     public DbSet<Application> Applications => Set<Application>();
     public DbSet<Contact> Contacts => Set<Contact>();
     public DbSet<Activity> Activities => Set<Activity>();
+    public DbSet<Profile> Profiles => Set<Profile>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<Profile>(entity =>
+        {
+            entity.Property(p => p.Id).ValueGeneratedNever();
+            entity.Property(p => p.CvSummary).HasMaxLength(Profile.MaxCvSummaryLength);
+        });
+
         modelBuilder.Entity<Application>(entity =>
         {
+            entity.Property(a => a.JobDescription).HasMaxLength(Application.MaxJobDescriptionLength);
+
+            // The analysis lives in its own table (it is optional and fairly large); lists become PostgreSQL text[] columns.
+            entity.OwnsOne(a => a.Analysis, analysis =>
+            {
+                analysis.ToTable("JobAnalyses");
+                analysis.WithOwner().HasForeignKey("ApplicationId");
+                analysis.Property(x => x.Seniority).HasMaxLength(JobAnalysis.MaxFieldLength);
+                analysis.Property(x => x.LocationRestrictions).HasMaxLength(JobAnalysis.MaxFieldLength);
+                analysis.Property(x => x.EmploymentType).HasMaxLength(JobAnalysis.MaxFieldLength);
+                analysis.Property(x => x.Salary).HasMaxLength(JobAnalysis.MaxFieldLength);
+                analysis.Property(x => x.Model).HasMaxLength(100);
+            });
+
             // Ids are generated in the domain (Guid.NewGuid), not by the database. Telling EF this
             // means new entities added through a navigation (e.g. Activities) are INSERTed, not UPDATEd.
             entity.Property(a => a.Id).ValueGeneratedNever();

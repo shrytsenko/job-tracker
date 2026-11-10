@@ -1,5 +1,9 @@
 using Microsoft.AspNetCore.Hosting;
+using JobTracker.Core.Ai;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.AspNetCore.TestHost;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Npgsql;
 using Testcontainers.PostgreSql;
 
@@ -35,7 +39,17 @@ public sealed class JobTrackerApiFactory : WebApplicationFactory<Program>, IAsyn
         builder.UseEnvironment("Testing");
         // EF's Migrate() creates the database if it does not exist yet.
         builder.UseSetting("ConnectionStrings:JobTracker", _connectionString);
+
+        // Never call the real AI provider from tests: swap in a fake each test class can steer.
+        builder.ConfigureTestServices(services =>
+        {
+            services.RemoveAll<ILlmClient>();
+            services.AddSingleton<ILlmClient>(FakeLlm);
+        });
     }
+
+    /// <summary>The AI client the API uses in tests. Set <see cref="FakeLlmClient.Respond"/> to control its answer.</summary>
+    public FakeLlmClient FakeLlm { get; } = new();
 
     private static async Task<PostgreSqlContainer> StartContainerAsync()
     {

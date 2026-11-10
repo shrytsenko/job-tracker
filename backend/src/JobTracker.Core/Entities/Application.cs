@@ -36,6 +36,14 @@ public class Application
     public DateOnly? NextActionDueOn { get; private set; }
     public string? Notes { get; set; }
 
+    public const int MaxJobDescriptionLength = 30000;
+
+    /// <summary>The pasted job post text, kept so the analysis can be re-run.</summary>
+    public string? JobDescription { get; private set; }
+
+    /// <summary>The latest AI analysis of <see cref="JobDescription"/>; null until one succeeds.</summary>
+    public JobAnalysis? Analysis { get; private set; }
+
     public List<Contact> Contacts { get; private set; } = new();
     public List<Activity> Activities { get; private set; } = new();
 
@@ -134,7 +142,38 @@ public class Application
         return activity;
     }
 
-        /// <summary>The hiring pipeline in order. Interested comes before it; closing statuses end it.</summary>
+        /// <summary>
+    /// Stores the job post text. A different text makes the old analysis stale, so it is cleared;
+    /// the same text (re-analysing) keeps it until the new analysis arrives.
+    /// </summary>
+    public void SetJobDescription(string? jobDescription)
+    {
+        var trimmed = string.IsNullOrWhiteSpace(jobDescription) ? null : jobDescription.Trim();
+        if (trimmed?.Length > MaxJobDescriptionLength)
+        {
+            throw new ArgumentException($"Job description can be at most {MaxJobDescriptionLength} characters.", nameof(jobDescription));
+        }
+
+        if (trimmed != JobDescription)
+        {
+            Analysis = null;
+        }
+
+        JobDescription = trimmed;
+    }
+
+    /// <summary>Replaces the previous analysis (only the latest one is kept).</summary>
+    public void RecordAnalysis(JobAnalysis analysis)
+    {
+        if (JobDescription is null)
+        {
+            throw new InvalidOperationException("Set a job description before recording its analysis.");
+        }
+
+        Analysis = analysis;
+    }
+
+    /// <summary>The hiring pipeline in order. Interested comes before it; closing statuses end it.</summary>
     public static readonly IReadOnlyList<ApplicationStatus> PipelineStages =
     [
         ApplicationStatus.Applied,

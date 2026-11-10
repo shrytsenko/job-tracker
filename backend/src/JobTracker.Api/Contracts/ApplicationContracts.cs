@@ -85,6 +85,8 @@ public record ApplicationDetailResponse(
     string? NextActionDescription,
     DateOnly? NextActionDueOn,
     string? Notes,
+    string? JobDescription,
+    JobAnalysisResponse? Analysis,
     IReadOnlyList<ContactSummaryResponse> Contacts,
     IReadOnlyList<ActivityResponse> Activities)
 {
@@ -93,6 +95,7 @@ public record ApplicationDetailResponse(
         a.RemoteRegion, a.HybridCity,
         a.CompensationAmount, a.CompensationCurrency, a.CompensationPeriod, a.CompensationIsNet,
         a.AppliedOn, a.LastContactOn, a.NextActionDescription, a.NextActionDueOn, a.Notes,
+        a.JobDescription, a.Analysis is null ? null : JobAnalysisResponse.From(a.Analysis),
         a.Contacts.OrderBy(c => c.Name).Select(ContactSummaryResponse.From).ToList(),
         a.Activities.OrderByDescending(x => x.Date).Select(ActivityResponse.From).ToList());
 }
@@ -109,4 +112,26 @@ public record FollowUpResponse(
 public record ActivityResponse(Guid Id, ActivityType Type, string Text, DateOnly Date)
 {
     public static ActivityResponse From(Activity x) => new(x.Id, x.Type, x.Text, x.Date);
+}
+
+/// <summary>Body for analysing an application's job post.</summary>
+/// <param name="JobDescription">The pasted job post. Omit (null) to re-analyse the text already saved on the application.</param>
+public record AnalyzeJobRequest([MaxLength(Application.MaxJobDescriptionLength)] string? JobDescription = null);
+
+public record JobAnalysisResponse(
+    IReadOnlyList<string> Stack,
+    string? Seniority,
+    string? LocationRestrictions,
+    string? EmploymentType,
+    string? Salary,
+    int MatchScore,
+    IReadOnlyList<string> Strengths,
+    IReadOnlyList<string> Gaps,
+    IReadOnlyList<string> RedFlags,
+    string Model,
+    DateTimeOffset AnalyzedAt)
+{
+    public static JobAnalysisResponse From(JobAnalysis a) => new(
+        a.Stack, a.Seniority, a.LocationRestrictions, a.EmploymentType, a.Salary, a.MatchScore,
+        a.Strengths, a.Gaps, a.RedFlags, a.Model, a.AnalyzedAt);
 }
