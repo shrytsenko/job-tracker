@@ -83,6 +83,7 @@ public class AnalysisEndpointsTests(JobTrackerApiFactory factory) : IClassFixtur
 
     [Theory]
     [InlineData(LlmFailure.NotConfigured, HttpStatusCode.ServiceUnavailable)]
+    [InlineData(LlmFailure.NoCredits, HttpStatusCode.PaymentRequired)]
     [InlineData(LlmFailure.Timeout, HttpStatusCode.GatewayTimeout)]
     [InlineData(LlmFailure.RateLimited, HttpStatusCode.TooManyRequests)]
     [InlineData(LlmFailure.Refused, HttpStatusCode.UnprocessableEntity)]

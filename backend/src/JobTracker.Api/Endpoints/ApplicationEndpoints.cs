@@ -262,6 +262,7 @@ public static class ApplicationEndpoints
     private static int StatusFor(LlmFailure failure) => failure switch
     {
         LlmFailure.NotConfigured => StatusCodes.Status503ServiceUnavailable,
+        LlmFailure.NoCredits => StatusCodes.Status402PaymentRequired,
         LlmFailure.Timeout => StatusCodes.Status504GatewayTimeout,
         LlmFailure.RateLimited => StatusCodes.Status429TooManyRequests,
         LlmFailure.Refused => StatusCodes.Status422UnprocessableEntity,

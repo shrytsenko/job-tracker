@@ -5,6 +5,8 @@ public enum LlmFailure
 {
     /// <summary>No API key configured.</summary>
     NotConfigured,
+    /// <summary>The provider account has run out of credits.</summary>
+    NoCredits,
     /// <summary>The provider took too long.</summary>
     Timeout,
     /// <summary>Too many requests; try again later.</summary>

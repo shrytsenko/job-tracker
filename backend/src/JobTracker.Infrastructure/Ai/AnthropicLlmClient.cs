@@ -112,7 +112,10 @@ public sealed class AnthropicLlmClient : ILlmClient
         AnthropicOverloadedException or AnthropicServiceUnavailableException or Anthropic5xxException =>
             new(LlmFailure.ProviderError, "The AI service is temporarily unavailable. Try again shortly.", ex),
         AnthropicIOException => new(LlmFailure.ProviderError, "Could not reach the AI service. Check the network connection.", ex),
-        // A 400 means our request was rejected; the provider's message names the offending field, so pass it on.
+        // Out of credits arrives as a 400 too; give it its own, actionable message.
+        AnthropicBadRequestException when ex.Message.Contains("credit balance", StringComparison.OrdinalIgnoreCase) =>
+            new(LlmFailure.NoCredits, "Your Anthropic account has no credits left. Add credits at platform.claude.com → Billing, then try again.", ex),
+        // Any other 400 means our request was rejected; the provider's message names the offending field, so pass it on.
         AnthropicBadRequestException => new(LlmFailure.ProviderError, $"The AI service rejected the request: {ProviderMessage(ex)}", ex),
         AnthropicException => new(LlmFailure.ProviderError, $"The AI service returned an error: {ProviderMessage(ex)}", ex),
         _ => null,
