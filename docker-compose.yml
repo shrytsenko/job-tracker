@@ -1,7 +1,11 @@
-# Local PostgreSQL for the Job Tracker.
-#   cp .env.example .env      # then set a password in .env (git-ignored)
-#   docker compose up -d db
-# Data lives in the named volume "jobtracker-data", so it survives restarts and "docker compose down".
+# Job Tracker: PostgreSQL + API + UI.
+#
+# One-time:  cp .env.example .env   (then set a password in .env, which is git-ignored)
+#
+# Run everything:    docker compose up -d --build     -> open http://localhost:8080
+# Develop locally:   docker compose up -d db          -> run the API (dotnet run) and UI (npm run dev) yourself
+#
+# Data lives in the named volume "jobtracker-data": it survives restarts and "docker compose down".
 # Only "docker compose down -v" deletes it.
 
 services:
@@ -13,7 +17,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env (see .env.example)}
       POSTGRES_DB: ${POSTGRES_DB:-jobtracker}
     ports:
-      # Bound to localhost only: the database is not reachable from other machines on the network.
+      # Published for the local "develop" mode; bound to localhost so other machines can't reach it.
       - "127.0.0.1:5432:5432"
     volumes:
       - jobtracker-data:/var/lib/postgresql/data
@@ -22,6 +26,27 @@ services:
       interval: 5s
       timeout: 3s
       retries: 10
+
+  api:
+    build: ./backend
+    restart: unless-stopped
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      # "db" is the database service's name on the compose network. GSS (Kerberos) encryption is off: the
+      # slim runtime image has no Kerberos library and the database is only reachable on the compose network.
+      ConnectionStrings__JobTracker: Host=db;Port=5432;Database=${POSTGRES_DB:-jobtracker};Username=${POSTGRES_USER:-jobtracker};Password=${POSTGRES_PASSWORD};GSS Encryption Mode=Disable
+    depends_on:
+      db:
+        condition: service_healthy
+    # No published port: the API is only reachable through the web container's /api proxy.
+
+  web:
+    build: ./frontend
+    restart: unless-stopped
+    depends_on:
+      - api
+    ports:
+      - "127.0.0.1:8080:8080"
 
 volumes:
   jobtracker-data:

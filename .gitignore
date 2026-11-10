@@ -2,6 +2,7 @@
 bin/
 obj/
 *.user
+TestResults/
 
 ## SQLite data (never commit real personal data)
 *.db

@@ -1,5 +1,7 @@
 # Job Tracker
 
+[![CI](https://github.com/shrytsenko/job-tracker/actions/workflows/ci.yml/badge.svg)](https://github.com/shrytsenko/job-tracker/actions/workflows/ci.yml)
+
 A personal job-search tracker with AI assistance, built with **ASP.NET Core**, **React** and **TypeScript**.
 
 Track applications, recruiters and referrals in one place, see which follow-ups are due, and compare how different job tracks are converting. An AI assistant analyses job descriptions, flags restrictions like "US work authorization required", scores how well a role matches your profile, and drafts replies to recruiters.
@@ -37,7 +39,7 @@ So I'm building the tool I needed, and using it as a showcase of how I approach 
 | AI | LLM provider behind a swappable `ILlmClient` interface |
 | Testing | xUnit, `WebApplicationFactory` integration tests, Playwright end-to-end tests |
 | CI/CD | GitHub Actions |
-| Packaging | Docker, docker-compose |
+| Packaging | Docker (multi-stage images, non-root), docker-compose, nginx |
 
 ## Roadmap
 
@@ -53,11 +55,26 @@ So I'm building the tool I needed, and using it as a showcase of how I approach 
 
 Requires the [.NET 10 SDK](https://dotnet.microsoft.com/download), [Node.js 24 LTS](https://nodejs.org/) and [Docker Desktop](https://www.docker.com/products/docker-desktop/).
 
-**One-time setup** — pick a database password and give it to both Docker and the API:
+### Run everything in Docker
+
+The quickest way to use the app (only Docker needed):
 
 ```bash
-cp .env.example .env                      # then edit POSTGRES_PASSWORD in .env
-dotnet user-secrets set ConnectionStrings:JobTracker   "Host=localhost;Port=5432;Database=jobtracker;Username=jobtracker;Password=<the same password>"   --project backend/src/JobTracker.Api
+cp .env.example .env              # one time: set POSTGRES_PASSWORD
+docker compose up -d --build      # PostgreSQL + API + UI
+```
+
+Open **http://localhost:8080**. nginx serves the UI and forwards `/api` to the API container; the API is not published on its own, and both published ports are bound to `localhost` only. Stop with `docker compose down` (your data stays in the volume).
+
+### Develop locally
+
+For day-to-day development, run only the database in Docker and the API and UI on your machine (debugger, hot reload).
+
+**One time** — pick a database password and give it to both Docker and the API:
+
+```bash
+cp .env.example .env      # then set POSTGRES_PASSWORD in .env
+dotnet user-secrets set ConnectionStrings:JobTracker "Host=localhost;Port=5432;Database=jobtracker;Username=jobtracker;Password=<same password>" --project backend/src/JobTracker.Api
 ```
 
 `.env` is git-ignored and user secrets live in your user profile, so the password never ends up in the repository.
@@ -93,6 +110,8 @@ dotnet run --project src/JobTracker.Api --launch-profile demo
 It uses a separate `jobtracker_demo` database on the same PostgreSQL server and fills it with 20 fictional applications (companies from Microsoft's standard fictional names, `example.com` emails) the first time it starts. The same data backs the dashboard tests. To reset it: `docker compose exec db dropdb -U jobtracker jobtracker_demo`.
 
 ### Running the tests and checks
+
+The same checks run in [GitHub Actions](.github/workflows/ci.yml) on every push to `main` and on every pull request: backend build and tests, frontend lint and build, and a Docker image build.
 
 ```bash
 cd backend && dotnet test          # unit + integration tests (integration tests need Docker running)
