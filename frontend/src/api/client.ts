@@ -6,6 +6,7 @@ import type {
   ApplicationSummary,
   CompleteNextActionRequest,
   ContactDetail,
+  DashboardStats,
   ContactSummary,
   FollowUp,
   SaveApplicationRequest,
@@ -94,6 +95,8 @@ export const api = {
     request<ApplicationDetail>(`/api/applications/${applicationId}/next-action/complete`, { method: 'POST', body: json(body) }),
 
   getFollowUps: (days: number) => request<FollowUp[]>(`/api/applications/follow-ups${toQuery({ days })}`),
+
+  getDashboard: () => request<DashboardStats>('/api/dashboard'),
 
   listCompanies: () => request<string[]>('/api/companies'),
   listCvVersions: () => request<string[]>('/api/applications/cv-versions'),

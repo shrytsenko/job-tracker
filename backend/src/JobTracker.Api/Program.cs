@@ -27,7 +27,18 @@ var app = builder.Build();
 // Personal single-user tool: applying migrations on startup keeps "dotnet run" zero-setup.
 using (var scope = app.Services.CreateScope())
 {
-    scope.ServiceProvider.GetRequiredService<JobTrackerDbContext>().Database.Migrate();
+    var db = scope.ServiceProvider.GetRequiredService<JobTrackerDbContext>();
+    db.Database.Migrate();
+
+    // Fictional demo data, only when asked for (the "demo" launch profile) and only into an empty database.
+    if (app.Configuration.GetValue<bool>("SeedDemoData"))
+    {
+        var today = DateOnly.FromDateTime(app.Services.GetRequiredService<TimeProvider>().GetLocalNow().DateTime);
+        if (await DemoData.SeedIfEmptyAsync(db, today))
+        {
+            app.Logger.LogInformation("Seeded fictional demo data");
+        }
+    }
 }
 
 app.UseExceptionHandler();
@@ -52,5 +63,6 @@ else
 app.MapApplicationEndpoints();
 app.MapContactEndpoints();
 app.MapCompanyEndpoints();
+app.MapDashboardEndpoints();
 
 app.Run();

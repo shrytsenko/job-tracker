@@ -1033,6 +1033,197 @@ a.button-sm:hover {
   }
 }
 
+/* ---------- Dashboard ---------- */
+
+.dashboard {
+  max-width: 1040px;
+}
+
+.dashboard-heading {
+  margin-top: 2.25rem;
+}
+
+.dashboard-intro {
+  margin: -0.4rem 0 1rem;
+  font-size: var(--step--1);
+}
+
+/* KPI row: stat tiles, label above value. */
+.kpi-row {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+  margin: 0;
+}
+
+.kpi {
+  border-top: 3px solid var(--accent);
+  padding-top: 0.6rem;
+}
+
+.kpi dt {
+  font-size: var(--step--1);
+  color: var(--muted);
+}
+
+.kpi dd {
+  margin: 0.15rem 0 0;
+  font-size: var(--step-3);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Funnel: small multiples, one panel per track, all on one scale. */
+/* Panels stacked on one shared baseline, so bars of equal length line up across tracks. */
+.funnel-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  max-width: 680px;
+}
+
+.funnel-panel h3 {
+  margin: 0;
+  font-size: var(--step-1);
+}
+
+.funnel-summary {
+  margin: 0.15rem 0 0.75rem;
+  font-size: var(--step--1);
+  color: var(--muted);
+}
+
+.status-panel {
+  max-width: 520px;
+}
+
+/* Bar list: label | bar with the value at its tip. */
+.bar-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.bar-row {
+  position: relative;
+  display: grid;
+  grid-template-columns: 8.5rem 1fr;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 1.9rem;
+  border-radius: 4px;
+}
+
+.bar-row:hover,
+.bar-row:focus-visible {
+  background: var(--tone-neutral-bg);
+  outline: none;
+}
+
+.bar-label {
+  font-size: var(--step--1);
+  color: var(--muted);
+  text-align: right;
+}
+
+.bar-track {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Thin bar, square at the baseline, 4px rounded data end. The 6rem keeps room for the value at the tip. */
+.bar-fill {
+  height: 18px;
+  width: calc(var(--share) * (100% - 6rem));
+  min-width: 4px;
+  background: var(--accent);
+  border-radius: 0 4px 4px 0;
+}
+
+.bar-value {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.bar-note {
+  margin-left: 0.4rem;
+  font-weight: 400;
+  font-size: var(--step--1);
+  color: var(--muted);
+}
+
+.bar-tooltip {
+  position: absolute;
+  left: 9.25rem;
+  bottom: calc(100% + 4px);
+  z-index: 10;
+  width: max-content;
+  max-width: 18rem;
+  padding: 0.4rem 0.65rem;
+  border-radius: var(--radius);
+  background: var(--text);
+  color: var(--bg);
+  font-size: var(--step--1);
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 0.15s;
+  pointer-events: none;
+}
+
+.bar-row:hover .bar-tooltip,
+.bar-row:focus-visible .bar-tooltip {
+  visibility: visible;
+  opacity: 1;
+}
+
+.conversion-table {
+  margin-top: 1.5rem;
+  max-width: 640px;
+}
+
+.conversion-table th {
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: var(--step-0);
+}
+
+.conversion-table caption {
+  caption-side: top;
+  text-align: left;
+  padding: 0 0 0.5rem;
+  font-weight: 700;
+}
+
+.conversion-table th[scope='row'] {
+  font-weight: 400;
+  color: var(--muted);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bar-tooltip {
+    transition: none;
+  }
+}
+
+@media (max-width: 760px) {
+  .kpi-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .bar-row {
+    grid-template-columns: 6.5rem 1fr;
+  }
+
+  .bar-tooltip {
+    left: 0;
+  }
+}
+
 /* ---------- Small screens ---------- */
 
 @media (max-width: 760px) {

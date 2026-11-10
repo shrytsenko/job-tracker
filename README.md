@@ -22,7 +22,7 @@ So I'm building the tool I needed, and using it as a showcase of how I approach 
 - [x] Contacts (recruiters, referrers, hiring managers) linked to applications 
 - [x] Activity timeline per application 
 - [x] "Needs follow-up" view for stale applications and overdue actions
-- [ ] Dashboard with a funnel and conversion rates per track
+- [x] Dashboard with a funnel and conversion rates per track
 - [ ] AI job description analysis: stack, seniority, location restrictions, match score, red flags
 - [ ] AI-drafted replies to recruiters (always editable, never sent automatically)
 - [ ] MCP server so AI assistants like Claude can read and update the tracker
@@ -43,7 +43,7 @@ So I'm building the tool I needed, and using it as a showcase of how I approach 
 
 1. ✅ **Core tracker API** — domain model, CRUD endpoints, validation, tests
 2. ✅ **React UI** — list, filters, detail page, follow-up view
-3. **Dashboard** — funnel and conversion per track
+3. ✅ **Dashboard** — funnel and conversion per track
 4. **AI job analysis** — structured analysis of pasted job descriptions
 5. **AI reply drafts** — recruiter messages and emails
 6. **MCP server** — manage the tracker from Claude
@@ -70,6 +70,17 @@ Open **http://localhost:5173**. The Vite dev server forwards `/api` requests to 
 
 The API starts on `http://localhost:5122` and opens **Swagger UI** at `http://localhost:5122/swagger`, where you can try every endpoint. The raw OpenAPI document is at `/openapi/v1.json`. The SQLite database (`jobtracker.db`) is created and migrated automatically on first start. [`JobTracker.Api.http`](backend/src/JobTracker.Api/JobTracker.Api.http) has ready-made requests for VS Code / Rider / Visual Studio.
 
+### Demo data
+
+To try the app with realistic numbers without touching your own data, start the API with the **demo** profile:
+
+```bash
+cd backend
+dotnet run --project src/JobTracker.Api --launch-profile demo
+```
+
+It uses a separate `jobtracker.demo.db` and fills it with 20 fictional applications (companies from Microsoft's standard fictional names, `example.com` emails) the first time it starts. The same data backs the dashboard tests. Delete `jobtracker.demo.db` to reset it.
+
 ### Running the tests and checks
 
 ```bash
@@ -95,6 +106,7 @@ cd frontend && npm run lint        # oxlint
 | GET, POST | `/api/contacts` | List / create contacts |
 | GET, PUT, DELETE | `/api/contacts/{id}` | Read / update / delete a contact |
 | GET | `/api/applications/cv-versions` | Distinct CV version names used so far (for autocomplete) |
+| GET | `/api/dashboard` | Counts per status and track, and a funnel per track with conversion rates |
 | GET | `/api/companies` | Distinct company names from applications and contacts (for autocomplete) |
 
 Enums travel as strings (`"Applied"`, `"SDET"`, `"EUR"`). Errors follow [RFC 9457 ProblemDetails](https://www.rfc-editor.org/rfc/rfc9457); validation errors list the offending fields under `errors`.
@@ -125,6 +137,7 @@ Key decisions:
 - **The pipeline is the UI.** Each application shows a stage track (Applied to Offer), drawn like a CI pipeline; clicking a stage changes the status. `FurthestStage` is kept when an application closes, so a rejection shows where it stopped, and the Phase 3 funnel can count how far each application got.
 - **Follow-up rule on the domain.** "No contact for N days" and "next action due" are `Application` methods with unit tests. The endpoint and, later, the MCP server reuse them instead of re-implementing the rule.
 - **React with only React Router as a dependency.** Data fetching is a small `useAsync` hook over a typed client, and styling is one plain CSS file with variables (light and dark themes) and a self-hosted font (Atkinson Hyperlegible Next). Filters live in the URL, so reloads and the back button keep them.
+- **Dashboard maths is a pure function.** `DashboardCalculator` in Core takes applications and returns the stats, so the funnel rules are unit-tested without a database. The funnel counts the *furthest stage reached*, so an application rejected after the tech interview still counts towards the earlier steps and conversion rates aren't inflated.
 - **Integration tests run the real migrations** against an in-memory SQLite database, so they test the same schema production uses.
 
 ## Privacy

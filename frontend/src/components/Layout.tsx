@@ -24,6 +24,7 @@ export function Layout() {
               </span>
             )}
           </NavLink>
+          <NavLink to="/dashboard">Dashboard</NavLink>
           <NavLink to="/contacts">Contacts</NavLink>
         </nav>
       </header>

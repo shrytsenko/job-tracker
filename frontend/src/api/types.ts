@@ -174,3 +174,27 @@ export interface SaveContactRequest {
   notes: string | null
   lastContactOn: IsoDate | null
 }
+
+export interface FunnelStep {
+  stage: ApplicationStatus
+  /** Applications whose furthest stage is this stage or later. */
+  reached: number
+  /** Reached / reached at the previous step (0–1); null for the first step or after an empty step. */
+  conversionFromPrevious: number | null
+}
+
+export interface TrackFunnel {
+  track: Track
+  /** All applications on the track, including ones not applied to yet. */
+  total: number
+  steps: FunnelStep[]
+  /** Offers / applied (0–1); null when nothing was applied to. */
+  overallConversion: number | null
+}
+
+export interface DashboardStats {
+  total: number
+  byStatus: { status: ApplicationStatus; count: number }[]
+  byTrack: { track: Track; count: number }[]
+  funnels: TrackFunnel[]
+}
