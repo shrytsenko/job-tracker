@@ -9,6 +9,7 @@ import type {
   DashboardStats,
   ContactSummary,
   FollowUp,
+  Profile,
   SaveApplicationRequest,
   SaveContactRequest,
   SetNextActionRequest,
@@ -95,6 +96,15 @@ export const api = {
     request<ApplicationDetail>(`/api/applications/${applicationId}/next-action/complete`, { method: 'POST', body: json(body) }),
 
   getFollowUps: (days: number) => request<FollowUp[]>(`/api/applications/follow-ups${toQuery({ days })}`),
+
+  analyzeJob: (applicationId: string, jobDescription: string | null) =>
+    request<ApplicationDetail>(`/api/applications/${applicationId}/analysis`, {
+      method: 'POST',
+      body: json({ jobDescription }),
+    }),
+
+  getProfile: () => request<Profile>('/api/profile'),
+  saveProfile: (cvSummary: string) => request<Profile>('/api/profile', { method: 'PUT', body: json({ cvSummary }) }),
 
   getDashboard: () => request<DashboardStats>('/api/dashboard'),
 

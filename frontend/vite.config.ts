@@ -7,8 +7,9 @@ export default defineConfig({
   server: {
     // The browser only ever talks to the Vite dev server; /api calls are forwarded to the
     // ASP.NET Core API. Same origin from the browser's point of view, so no CORS setup needed.
+    // API_URL lets a second dev setup point elsewhere (e.g. API_URL=http://localhost:5199 npm run dev).
     proxy: {
-      '/api': 'http://localhost:5122',
+      '/api': process.env.API_URL ?? 'http://localhost:5122',
     },
   },
 })

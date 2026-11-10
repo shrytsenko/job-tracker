@@ -29,6 +29,7 @@ export function Layout() {
           </NavLink>
           <NavLink to="/dashboard">Dashboard</NavLink>
           <NavLink to="/contacts">Contacts</NavLink>
+          <NavLink to="/profile">Profile</NavLink>
         </nav>
       </header>
       <main className="content">

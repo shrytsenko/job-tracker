@@ -2,6 +2,7 @@ import { Link, Route, Routes } from 'react-router'
 import { Layout } from './components/Layout'
 import { DashboardPage } from './pages/DashboardPage'
 import { FollowUpsPage } from './pages/FollowUpsPage'
+import { ProfilePage } from './pages/ProfilePage'
 import { ApplicationDetailPage } from './pages/applications/ApplicationDetailPage'
 import { ApplicationFormPage } from './pages/applications/ApplicationFormPage'
 import { ApplicationsPage } from './pages/applications/ApplicationsPage'
@@ -18,6 +19,7 @@ export default function App() {
         <Route path="applications/:id/edit" element={<ApplicationFormPage />} />
         <Route path="follow-ups" element={<FollowUpsPage />} />
         <Route path="dashboard" element={<DashboardPage />} />
+        <Route path="profile" element={<ProfilePage />} />
         <Route path="contacts" element={<ContactsPage />} />
         <Route path="contacts/new" element={<ContactFormPage />} />
         <Route path="contacts/:id" element={<ContactFormPage />} />

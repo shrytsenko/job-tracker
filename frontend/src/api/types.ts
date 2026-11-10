@@ -83,6 +83,10 @@ export interface ApplicationDetail {
   nextActionDescription: string | null
   nextActionDueOn: IsoDate | null
   notes: string | null
+  /** The pasted job post, kept so it can be re-analysed. */
+  jobDescription: string | null
+  /** Latest AI analysis of the job post; null until one succeeds. */
+  analysis: JobAnalysis | null
   contacts: ContactSummary[]
   activities: Activity[]
 }
@@ -197,4 +201,25 @@ export interface DashboardStats {
   byStatus: { status: ApplicationStatus; count: number }[]
   byTrack: { track: Track; count: number }[]
   funnels: TrackFunnel[]
+}
+
+export interface JobAnalysis {
+  stack: string[]
+  seniority: string | null
+  locationRestrictions: string | null
+  employmentType: string | null
+  salary: string | null
+  /** 0–100: how well the CV fits the role. */
+  matchScore: number
+  strengths: string[]
+  gaps: string[]
+  redFlags: string[]
+  model: string
+  analyzedAt: string
+}
+
+export interface Profile {
+  cvSummary: string
+  /** Null until the profile has been saved once. */
+  updatedAt: string | null
 }

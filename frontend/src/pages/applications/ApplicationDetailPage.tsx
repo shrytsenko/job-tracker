@@ -10,6 +10,7 @@ import { StageTrack } from '../../components/StageTrack'
 import { useAsync } from '../../hooks/useAsync'
 import { formatDate, label, todayIso } from '../../labels'
 import { requestWithStatus } from './applicationForm'
+import { JobAnalysisSection } from './JobAnalysisSection'
 import { NextActionSection } from './NextActionSection'
 
 export function ApplicationDetailPage() {
@@ -94,6 +95,8 @@ export function ApplicationDetailPage() {
       <div className="detail-body">
         <div className="detail-main">
           <NextActionSection application={application} mutate={mutate} />
+
+          <JobAnalysisSection application={application} onAnalyzed={reload} />
 
           <section className="detail-section">
             <h2>Notes</h2>

@@ -72,8 +72,8 @@ public sealed class AnthropicLlmClient : ILlmClient
         }
         catch (Exception ex) when (Map(ex) is { } mapped)
         {
-            _logger.LogWarning("Claude request failed after {ElapsedMs} ms: {Failure} ({ExceptionType})",
-                started.ElapsedMilliseconds, mapped.Failure, ex.GetType().Name);
+            _logger.LogWarning("Claude request failed after {ElapsedMs} ms: {Failure} ({ExceptionType}): {Message}",
+                started.ElapsedMilliseconds, mapped.Failure, ex.GetType().Name, mapped.Message);
             throw mapped;
         }
 
@@ -112,7 +112,19 @@ public sealed class AnthropicLlmClient : ILlmClient
         AnthropicOverloadedException or AnthropicServiceUnavailableException or Anthropic5xxException =>
             new(LlmFailure.ProviderError, "The AI service is temporarily unavailable. Try again shortly.", ex),
         AnthropicIOException => new(LlmFailure.ProviderError, "Could not reach the AI service. Check the network connection.", ex),
-        AnthropicException => new(LlmFailure.ProviderError, "The AI service returned an error.", ex),
+        // A 400 means our request was rejected; the provider's message names the offending field, so pass it on.
+        AnthropicBadRequestException => new(LlmFailure.ProviderError, $"The AI service rejected the request: {ProviderMessage(ex)}", ex),
+        AnthropicException => new(LlmFailure.ProviderError, $"The AI service returned an error: {ProviderMessage(ex)}", ex),
         _ => null,
     };
+
+    /// <summary>
+    /// The provider's own error text, shortened. It describes the request fields, not the prompt content,
+    /// so it is safe to log and show (job text and CV are never part of it).
+    /// </summary>
+    private static string ProviderMessage(Exception ex)
+    {
+        var message = ex.Message.ReplaceLineEndings(" ").Trim();
+        return message.Length > 400 ? message[..400] + "…" : message;
+    }
 }
