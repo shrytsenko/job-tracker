@@ -55,9 +55,9 @@ public static class ApplicationEndpoints
 
         if (!string.IsNullOrWhiteSpace(search))
         {
-            // LIKE rather than string.Contains: in SQLite, LIKE is case-insensitive, Contains (instr) is not.
+            // ILIKE: PostgreSQL's case-insensitive LIKE, so "contoso" finds "Contoso".
             var pattern = $"%{search.Trim()}%";
-            query = query.Where(a => EF.Functions.Like(a.Company, pattern) || EF.Functions.Like(a.RoleTitle, pattern));
+            query = query.Where(a => EF.Functions.ILike(a.Company, pattern) || EF.Functions.ILike(a.RoleTitle, pattern));
         }
 
         var applications = await query

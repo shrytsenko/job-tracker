@@ -32,7 +32,7 @@ So I'm building the tool I needed, and using it as a showcase of how I approach 
 | Layer | Technology |
 | --- | --- |
 | Backend | C#, ASP.NET Core Web API, Entity Framework Core |
-| Database | SQLite |
+| Database | PostgreSQL (Docker) |
 | Frontend | React, TypeScript, Vite |
 | AI | LLM provider behind a swappable `ILlmClient` interface |
 | Testing | xUnit, `WebApplicationFactory` integration tests, Playwright end-to-end tests |
@@ -51,11 +51,22 @@ So I'm building the tool I needed, and using it as a showcase of how I approach 
 
 ## Getting started
 
-Requires the [.NET 10 SDK](https://dotnet.microsoft.com/download) and [Node.js 24 LTS](https://nodejs.org/).
+Requires the [.NET 10 SDK](https://dotnet.microsoft.com/download), [Node.js 24 LTS](https://nodejs.org/) and [Docker Desktop](https://www.docker.com/products/docker-desktop/).
 
-Start the API and the UI in two terminals:
+**One-time setup** — pick a database password and give it to both Docker and the API:
 
 ```bash
+cp .env.example .env                      # then edit POSTGRES_PASSWORD in .env
+dotnet user-secrets set ConnectionStrings:JobTracker   "Host=localhost;Port=5432;Database=jobtracker;Username=jobtracker;Password=<the same password>"   --project backend/src/JobTracker.Api
+```
+
+`.env` is git-ignored and user secrets live in your user profile, so the password never ends up in the repository.
+
+**Every time** — start the database, then the API and the UI in two terminals:
+
+```bash
+docker compose up -d db                   # PostgreSQL on localhost:5432
+
 # terminal 1: API on http://localhost:5122
 cd backend
 dotnet run --project src/JobTracker.Api
@@ -68,7 +79,7 @@ npm run dev
 
 Open **http://localhost:5173**. The Vite dev server forwards `/api` requests to the API, so the browser sees a single origin and the API needs no CORS configuration.
 
-The API starts on `http://localhost:5122` and opens **Swagger UI** at `http://localhost:5122/swagger`, where you can try every endpoint. The raw OpenAPI document is at `/openapi/v1.json`. The SQLite database (`jobtracker.db`) is created and migrated automatically on first start. [`JobTracker.Api.http`](backend/src/JobTracker.Api/JobTracker.Api.http) has ready-made requests for VS Code / Rider / Visual Studio.
+The API starts on `http://localhost:5122` and opens **Swagger UI** at `http://localhost:5122/swagger`, where you can try every endpoint. The raw OpenAPI document is at `/openapi/v1.json`. The database schema is created and migrated automatically on first start. Your data lives in the Docker volume `jobtracker-data`; it survives restarts and `docker compose down` (only `docker compose down -v` deletes it). To back it up: `docker compose exec db pg_dump -U jobtracker jobtracker > backup.sql`. [`JobTracker.Api.http`](backend/src/JobTracker.Api/JobTracker.Api.http) has ready-made requests for VS Code / Rider / Visual Studio.
 
 ### Demo data
 
@@ -79,12 +90,12 @@ cd backend
 dotnet run --project src/JobTracker.Api --launch-profile demo
 ```
 
-It uses a separate `jobtracker.demo.db` and fills it with 20 fictional applications (companies from Microsoft's standard fictional names, `example.com` emails) the first time it starts. The same data backs the dashboard tests. Delete `jobtracker.demo.db` to reset it.
+It uses a separate `jobtracker_demo` database on the same PostgreSQL server and fills it with 20 fictional applications (companies from Microsoft's standard fictional names, `example.com` emails) the first time it starts. The same data backs the dashboard tests. To reset it: `docker compose exec db dropdb -U jobtracker jobtracker_demo`.
 
 ### Running the tests and checks
 
 ```bash
-cd backend && dotnet test          # unit + integration tests
+cd backend && dotnet test          # unit + integration tests (integration tests need Docker running)
 cd frontend && npm run build       # TypeScript type-check + production build
 cd frontend && npm run lint        # oxlint
 ```
@@ -116,10 +127,10 @@ Enums travel as strings (`"Applied"`, `"SDET"`, `"EUR"`). Errors follow [RFC 945
 ```
 backend/
   src/JobTracker.Core            Domain entities, enums and rules. No dependencies.
-  src/JobTracker.Infrastructure  EF Core DbContext, SQLite, migrations.
+  src/JobTracker.Infrastructure  EF Core DbContext, PostgreSQL (Npgsql), migrations, demo data.
   src/JobTracker.Api             Minimal API endpoints, request/response contracts, error handling, OpenAPI.
   tests/JobTracker.Core.Tests    Unit tests for domain rules (xUnit).
-  tests/JobTracker.Api.Tests     Integration tests through HTTP with WebApplicationFactory and in-memory SQLite.
+  tests/JobTracker.Api.Tests     Integration tests through HTTP with WebApplicationFactory and a real PostgreSQL (Testcontainers).
 frontend/
   src/api                        Typed API client (the only place that calls fetch) and types mirroring the C# contracts.
   src/pages                      One component per route: applications list/detail/form, follow-ups, contacts.
@@ -132,17 +143,17 @@ Key decisions:
 - **Rules live on the entities.** For example, logging a real interaction moves `LastContactOn` forward, and moving to `Applied` stamps `AppliedOn`. The endpoints stay thin and the rules are unit-testable without a database.
 - **Company is free text, with autocomplete.** A recruiter's company is often an agency rather than the hiring company, so the two fields stay independent; `/api/companies` just suggests existing names to keep spelling consistent. A `Company` entity can be introduced later with a simple `SELECT DISTINCT` migration if company pages are needed.
 - **No repository layer.** `DbContext` already is a unit of work over repositories. Another abstraction would add code without adding value at this size.
-- **Enums stored as text** in SQLite, so the database file is readable and reordering enum members can't corrupt data.
+- **Enums stored as text**, so the data is readable in any SQL client and reordering enum members can't corrupt data.
 - **Next action has a lifecycle**: set → done (logged on the timeline) → set the next one. `SetNextAction` and `CompleteNextAction` on the entity enforce it, e.g. a due date needs a description. Completing as a message or reply also counts as contact.
 - **The pipeline is the UI.** Each application shows a stage track (Applied to Offer), drawn like a CI pipeline; clicking a stage changes the status. `FurthestStage` is kept when an application closes, so a rejection shows where it stopped, and the Phase 3 funnel can count how far each application got.
 - **Follow-up rule on the domain.** "No contact for N days" and "next action due" are `Application` methods with unit tests. The endpoint and, later, the MCP server reuse them instead of re-implementing the rule.
 - **React with only React Router as a dependency.** Data fetching is a small `useAsync` hook over a typed client, and styling is one plain CSS file with variables (light and dark themes) and a self-hosted font (Atkinson Hyperlegible Next). Filters live in the URL, so reloads and the back button keep them.
 - **Dashboard maths is a pure function.** `DashboardCalculator` in Core takes applications and returns the stats, so the funnel rules are unit-tested without a database. The funnel counts the *furthest stage reached*, so an application rejected after the tech interview still counts towards the earlier steps and conversion rates aren't inflated.
-- **Integration tests run the real migrations** against an in-memory SQLite database, so they test the same schema production uses.
+- **Integration tests run the real migrations** against a real PostgreSQL in a throwaway Docker container (Testcontainers): one container per test run, one database per test class. They test the same database engine and schema the app uses.
 
 ## Privacy
 
-The repository contains only fictional seed data. Real data stays in a local SQLite database that is excluded from version control, and API keys are read from environment variables or .NET user secrets.
+The repository contains only fictional seed data. Real data stays in a local PostgreSQL volume that is never part of the repository, and the database password and API keys are read from environment variables or .NET user secrets.
 
 ## Author
 

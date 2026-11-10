@@ -1,0 +1,27 @@
+# Local PostgreSQL for the Job Tracker.
+#   cp .env.example .env      # then set a password in .env (git-ignored)
+#   docker compose up -d db
+# Data lives in the named volume "jobtracker-data", so it survives restarts and "docker compose down".
+# Only "docker compose down -v" deletes it.
+
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-jobtracker}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env (see .env.example)}
+      POSTGRES_DB: ${POSTGRES_DB:-jobtracker}
+    ports:
+      # Bound to localhost only: the database is not reachable from other machines on the network.
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - jobtracker-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  jobtracker-data:

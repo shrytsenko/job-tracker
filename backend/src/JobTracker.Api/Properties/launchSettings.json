@@ -29,8 +29,8 @@
       "applicationUrl": "http://localhost:5122",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
-        "ConnectionStrings__JobTracker": "Data Source=jobtracker.demo.db",
-        "SeedDemoData": "true"
+        "SeedDemoData": "true",
+        "DatabaseName": "jobtracker_demo"
       }
     }
   }
