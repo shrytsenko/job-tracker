@@ -65,7 +65,7 @@ So I'm building the tool I needed, and using it as a showcase of how I approach 
 4. ✅ **AI job analysis** — structured analysis of pasted job descriptions
 5. ✅ **AI reply drafts** — recruiter messages and emails
 6. ✅ **MCP server** — manage the tracker from Claude
-7. **Portfolio polish** — CI badge, Docker, screenshots, architecture diagram
+7. ✅ **Portfolio polish** — CI badge, Docker, Playwright end-to-end tests, screenshots, architecture diagram
 
 ## Getting started
 
@@ -243,6 +243,51 @@ They never touch your own data: the e2e stack has its own database volume and po
 Enums travel as strings (`"Applied"`, `"SDET"`, `"EUR"`). Errors follow [RFC 9457 ProblemDetails](https://www.rfc-editor.org/rfc/rfc9457); validation errors list the offending fields under `errors`.
 
 ## Architecture
+
+**How the running app fits together.** Everything runs in Docker Compose; only the web container (and PostgreSQL, for local development) is published, both on `localhost` only.
+
+```mermaid
+flowchart TB
+    you(["You, in the browser"])
+    claude(["Claude Desktop / Claude Code"])
+
+    subgraph compose["Docker Compose"]
+        direction TB
+        web["<b>web</b><br/>nginx: React UI + /api proxy"]
+        mcp["<b>mcp</b><br/>MCP server, one per Claude session"]
+        api["<b>api</b><br/>ASP.NET Core REST API"]
+        db[("<b>db</b><br/>PostgreSQL")]
+    end
+
+    anthropic["Anthropic API (Claude)"]
+
+    you -->|"HTTP, localhost:8080"| web
+    claude -->|"stdio: docker run -i"| mcp
+    web -->|/api| api
+    mcp -->|"REST only, no DB access"| api
+    api -->|EF Core| db
+    api -.->|"AI analysis and drafts, optional"| anthropic
+```
+
+**How the code is layered.** `Core` holds the domain and the application rules and depends on nothing; the outer projects plug into it. The AI provider sits behind `ILlmClient`, so tests use a fake and the provider could be swapped without touching the rules.
+
+```mermaid
+flowchart TB
+    api["<b>JobTracker.Api</b><br/>minimal API endpoints, contracts,<br/>ProblemDetails, OpenAPI"]
+    mcp["<b>JobTracker.Mcp</b><br/>MCP tools for Claude"]
+    infra["<b>JobTracker.Infrastructure</b><br/>EF Core + Npgsql, migrations,<br/>AnthropicLlmClient, demo data"]
+    core["<b>JobTracker.Core</b><br/>entities and rules: pipeline stages, follow-ups,<br/>next actions, dashboard maths,<br/>ILlmClient, JobAnalyzer, ReplyDrafter<br/><i>no dependencies</i>"]
+    ui["<b>frontend</b><br/>React + TypeScript"]
+
+    api --> core
+    api --> infra
+    infra --> core
+    mcp --> core
+    mcp -.->|HTTP| api
+    ui -.->|HTTP| api
+```
+
+**Where things live:**
 
 ```
 backend/
