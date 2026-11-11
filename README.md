@@ -8,6 +8,22 @@ Track applications, recruiters and referrals in one place, see which follow-ups 
 
 > 🚧 **Work in progress.** I'm building this in public while running my own job search. See the roadmap below for what's done and what's next.
 
+## Screenshots
+
+All data in these screenshots is fictional demo data.
+
+**An application:** the hiring pipeline as a stage track, the next action, and an AI analysis of the job post that red-flags a "US only" restriction.
+
+![Application page with stage track, next action and job analysis](docs/screenshots/application.png)
+
+| Applications | Follow-ups |
+| --- | --- |
+| ![Applications list with status, track, channel and next action](docs/screenshots/applications.png) | ![Follow-ups: applications with no recent contact or a due next action](docs/screenshots/follow-ups.png) |
+
+**Dashboard:** a funnel per track (Developer vs SDET) on one scale, with conversion from each step to the next.
+
+![Dashboard with KPIs, funnel by track and status breakdown](docs/screenshots/dashboard.png)
+
 ## Why I built it
 
 During my own job hunt I ended up juggling LinkedIn messages, Djinni, recruiter emails, freelance platforms and referrals from former colleagues across several markets. Spreadsheets didn't answer the questions I actually had:
@@ -196,6 +212,8 @@ npm run stack:up                  # isolated stack: project job-tracker-e2e, htt
 npm test                          # or: npm run test:ui
 npm run stack:down                # removes the e2e containers and their database
 ```
+
+`npm run screenshots` (with the stack up) recreates the screenshots above in `docs/screenshots/`, from the e2e stack's fictional demo data.
 
 They never touch your own data: the e2e stack has its own database volume and ports (web 8081, Postgres 5433), uses `e2e/.env.e2e` instead of your `.env`, and the test setup refuses to run against port 8080.
 

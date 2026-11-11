@@ -37,6 +37,8 @@ services:
       ConnectionStrings__JobTracker: Host=db;Port=5432;Database=${POSTGRES_DB:-jobtracker};Username=${POSTGRES_USER:-jobtracker};Password=${POSTGRES_PASSWORD};GSS Encryption Mode=Disable
       # Optional: without it the app runs and AI analysis reports "not configured".
       Anthropic__ApiKey: ${ANTHROPIC_API_KEY:-}
+      # Fictional demo data, written only into an empty database. Off by default; the e2e stack turns it on.
+      SeedDemoData: ${SEED_DEMO_DATA:-false}
     depends_on:
       db:
         condition: service_healthy
