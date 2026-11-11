@@ -67,18 +67,7 @@ public sealed class JobAnalyzer(ILlmClient llm)
         var request = new LlmJsonRequest(SystemPrompt, BuildUserPrompt(jobDescription, cvSummary), OutputSchema);
         var response = await llm.GenerateJsonAsync(request, ct);
 
-        var analysis = Parse(response);
-
-        // Backstop: restrictions the rules recognise are always flagged, even if the model left them out.
-        foreach (var redFlag in RestrictionScanner.Scan(jobDescription))
-        {
-            if (!MentionsSameRestriction(analysis.RedFlags, redFlag))
-            {
-                analysis = analysis.WithRedFlag(redFlag);
-            }
-        }
-
-        return analysis;
+        return ApplyRestrictionBackstop(Parse(response), jobDescription);
 
         JobAnalysis Parse(LlmJsonResponse llmResponse)
         {
@@ -108,6 +97,23 @@ public sealed class JobAnalyzer(ILlmClient llm)
                 throw new LlmException(LlmFailure.InvalidOutput, $"The AI answer failed validation: {ex.Message}", ex);
             }
         }
+    }
+
+    /// <summary>
+    /// Restrictions the rules recognise are always red-flagged, whoever wrote the analysis (the built-in AI call,
+    /// or Claude through the MCP server), unless the analysis already mentions the same restriction.
+    /// </summary>
+    public static JobAnalysis ApplyRestrictionBackstop(JobAnalysis analysis, string jobDescription)
+    {
+        foreach (var redFlag in RestrictionScanner.Scan(jobDescription))
+        {
+            if (!MentionsSameRestriction(analysis.RedFlags, redFlag))
+            {
+                analysis = analysis.WithRedFlag(redFlag);
+            }
+        }
+
+        return analysis;
     }
 
     internal static string BuildUserPrompt(string jobDescription, string cvSummary) =>

@@ -129,6 +129,28 @@ public record DraftReplyRequest(
 /// <param name="Subject">Email subject; null for LinkedIn.</param>
 public record ReplyDraftResponse(string? Subject, string Body, string Model);
 
+/// <summary>Body for changing only the status (the pipeline rules, e.g. furthest stage, still apply).</summary>
+public record UpdateStatusRequest(ApplicationStatus Status);
+
+/// <summary>
+/// An analysis written elsewhere (e.g. by Claude through the MCP server). It goes through the same validation
+/// and the same restriction backstop as the built-in analysis.
+/// </summary>
+/// <param name="JobDescription">The post that was analysed. Omit to keep the text already saved on the application.</param>
+/// <param name="Model">Who produced it, e.g. "Claude (via MCP)".</param>
+public record SaveAnalysisRequest(
+    int MatchScore,
+    [MaxLength(Application.MaxJobDescriptionLength)] string? JobDescription = null,
+    List<string>? Stack = null,
+    string? Seniority = null,
+    string? LocationRestrictions = null,
+    string? EmploymentType = null,
+    string? Salary = null,
+    List<string>? Strengths = null,
+    List<string>? Gaps = null,
+    List<string>? RedFlags = null,
+    [MaxLength(100)] string? Model = null);
+
 /// <summary>Body for analysing an application's job post.</summary>
 /// <param name="JobDescription">The pasted job post. Omit (null) to re-analyse the text already saved on the application.</param>
 public record AnalyzeJobRequest([MaxLength(Application.MaxJobDescriptionLength)] string? JobDescription = null);

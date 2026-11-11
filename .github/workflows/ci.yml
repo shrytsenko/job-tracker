@@ -72,6 +72,7 @@ jobs:
 
       # Proves both Dockerfiles still build. Nothing is started, so the password is only there because
       # docker-compose.yml requires one to be set; it is not a real secret.
-      - run: docker compose build
+      # --profile mcp also builds the MCP server image, which "docker compose up" never starts.
+      - run: docker compose --profile mcp build
         env:
           POSTGRES_PASSWORD: ci-build-only

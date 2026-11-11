@@ -27,7 +27,7 @@ So I'm building the tool I needed, and using it as a showcase of how I approach 
 - [x] Dashboard with a funnel and conversion rates per track
 - [x] AI job description analysis: stack, seniority, location restrictions, match score, red flags
 - [x] AI-drafted replies to recruiters (always editable, never sent automatically)
-- [ ] MCP server so AI assistants like Claude can read and update the tracker
+- [x] MCP server so AI assistants like Claude can read and update the tracker
 
 ## Tech stack
 
@@ -48,7 +48,7 @@ So I'm building the tool I needed, and using it as a showcase of how I approach 
 3. ✅ **Dashboard** — funnel and conversion per track
 4. ✅ **AI job analysis** — structured analysis of pasted job descriptions
 5. ✅ **AI reply drafts** — recruiter messages and emails
-6. **MCP server** — manage the tracker from Claude
+6. ✅ **MCP server** — manage the tracker from Claude
 7. **Portfolio polish** — CI badge, Docker, screenshots, architecture diagram
 
 ## Getting started
@@ -114,6 +114,57 @@ In Docker, put it in `.env` as `ANTHROPIC_API_KEY=...`. Without a key the app wo
 
 Under **Reply** on an application, pick the recipient (one of its linked contacts), LinkedIn or email, short or detailed, optionally paste their message and say what you want to get across, then **Draft reply**. The draft answers in the language of their message, uses only facts from your CV and the application, and leaves [placeholders] for anything it does not know (salary, start date). Edit it, **Copy** it, send it yourself, then **Log as sent** to add a "Message sent" entry to the timeline. The app never sends anything.
 
+### Use the tracker from Claude (MCP)
+
+`backend/src/JobTracker.Mcp` is an [MCP](https://modelcontextprotocol.io) server, so Claude Desktop or Claude Code can work with the tracker: *"add the Contoso .NET role as applied"*, *"who haven't I heard back from in 5 days?"*, *"log that Dana replied and remind me to follow up on Friday"*, *"analyse the job post on the Rf-SMART application"*.
+
+| Tool | What it does |
+| --- | --- |
+| `list_applications`, `get_application` | Find applications (filters, search) and read one in full |
+| `add_application`, `update_status` | Add an application, move it through the pipeline |
+| `log_activity` | Add a timeline entry (messages and replies update the last contact date) |
+| `get_followups` | Applications with no contact for N days or a next action due |
+| `set_next_action`, `complete_next_action` | Plan the next step, mark it done |
+| `get_job_post`, `save_job_analysis` | Let Claude analyse a job post with the app's own rules and save it (same validation and "US only" backstop as the built-in analysis, no API credits needed) |
+
+It only talks to the REST API (it holds no database credentials), and there is deliberately no delete tool. It finds the API through `JobTrackerApi__BaseUrl`: `http://api:8080` in its Docker image, `http://localhost:8080` by default otherwise.
+
+**Option A: run it in Docker (recommended).** Only Docker is needed. Build the image once (and after changes):
+
+```bash
+docker compose build mcp
+```
+
+Claude then starts a short-lived container per session on the stack's network, where it reaches the API at `http://api:8080`. The stack must be running (`docker compose up -d`); `docker compose up` itself never starts the MCP container.
+
+Claude Code:
+
+```bash
+claude mcp add --transport stdio job-tracker -- docker run -i --rm --network job-tracker_default job-tracker-mcp
+```
+
+Claude Desktop (`claude_desktop_config.json`, then restart Claude Desktop):
+
+```json
+{
+  "mcpServers": {
+    "job-tracker": {
+      "command": "docker",
+      "args": ["run", "-i", "--rm", "--network", "job-tracker_default", "job-tracker-mcp"]
+    }
+  }
+}
+```
+
+**Option B: run it as a local executable.** Useful when you run the API with `dotnet run`:
+
+```bash
+dotnet publish backend/src/JobTracker.Mcp -c Release -o publish/mcp
+claude mcp add --transport stdio --env JobTrackerApi__BaseUrl=http://localhost:5122 job-tracker -- "D:/Programming/job-tracker/publish/mcp/JobTracker.Mcp.exe"
+```
+
+In Claude Desktop, use the executable's path as `command` and pass the same `JobTrackerApi__BaseUrl` under `env`. Adjust paths to your clone; use `http://localhost:8080` to reach the Docker stack instead.
+
 ### Demo data
 
 To try the app with realistic numbers without touching your own data, start the API with the **demo** profile:
@@ -166,6 +217,7 @@ Enums travel as strings (`"Applied"`, `"SDET"`, `"EUR"`). Errors follow [RFC 945
 backend/
   src/JobTracker.Core            Domain entities, enums and rules. No dependencies.
   src/JobTracker.Infrastructure  EF Core DbContext, PostgreSQL (Npgsql), migrations, demo data.
+  src/JobTracker.Mcp             MCP server (stdio) for Claude: thin tools over the REST API, no database access.
   src/JobTracker.Api             Minimal API endpoints, request/response contracts, error handling, OpenAPI.
   tests/JobTracker.Core.Tests    Unit tests for domain rules (xUnit).
   tests/JobTracker.Api.Tests     Integration tests through HTTP with WebApplicationFactory and a real PostgreSQL (Testcontainers).

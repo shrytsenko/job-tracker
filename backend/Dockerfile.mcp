@@ -1,0 +1,25 @@
+# MCP server image: build with the SDK, run on the plain .NET runtime (no ASP.NET needed for stdio).
+# Build context: the backend folder (docker compose build mcp does this for you).
+# Claude starts it on demand: docker run -i --rm --network job-tracker_default job-tracker-mcp
+
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+WORKDIR /src
+
+# Project files first, so "dotnet restore" is cached until a .csproj changes.
+COPY Directory.Build.props ./
+COPY src/JobTracker.Core/JobTracker.Core.csproj src/JobTracker.Core/
+COPY src/JobTracker.Mcp/JobTracker.Mcp.csproj src/JobTracker.Mcp/
+RUN dotnet restore src/JobTracker.Mcp/JobTracker.Mcp.csproj
+
+COPY src/JobTracker.Core/ src/JobTracker.Core/
+COPY src/JobTracker.Mcp/ src/JobTracker.Mcp/
+RUN dotnet publish src/JobTracker.Mcp/JobTracker.Mcp.csproj -c Release -o /app --no-restore -p:UseAppHost=false
+
+FROM mcr.microsoft.com/dotnet/runtime:10.0 AS runtime
+WORKDIR /app
+COPY --from=build /app .
+
+USER $APP_UID
+# Inside the compose network the API is reachable by its service name.
+ENV JobTrackerApi__BaseUrl=http://api:8080
+ENTRYPOINT ["dotnet", "JobTracker.Mcp.dll"]

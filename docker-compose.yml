@@ -50,5 +50,16 @@ services:
     ports:
       - "127.0.0.1:8080:8080"
 
+  # MCP server for Claude. Not started by "docker compose up" (the "mcp" profile keeps it out): it talks
+  # stdio, so Claude launches it per session with
+  #   docker run -i --rm --network job-tracker_default job-tracker-mcp
+  # Build or rebuild the image with: docker compose build mcp
+  mcp:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.mcp
+    image: job-tracker-mcp
+    profiles: ["mcp"]
+
 volumes:
   jobtracker-data:

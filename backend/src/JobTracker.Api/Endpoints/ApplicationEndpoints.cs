@@ -30,6 +30,9 @@ public static class ApplicationEndpoints
 
         group.MapPost("/{id:guid}/activities", AddActivity).WithSummary("Add a timeline entry");
 
+        group.MapPut("/{id:guid}/status", UpdateStatus).WithSummary("Change only the status");
+        group.MapPut("/{id:guid}/analysis", SaveAnalysis)
+            .WithSummary("Save an analysis written elsewhere (e.g. Claude via MCP); validated like the built-in one");
         group.MapPost("/{id:guid}/analysis", Analyze)
             .WithSummary("Analyse the job post with AI against your CV summary (saves the post text, replaces the previous analysis)");
 
@@ -212,6 +215,49 @@ public static class ApplicationEndpoints
         }
 
         application.CompleteNextAction(request.Type, request.Date ?? Today(clock));
+        await db.SaveChangesAsync(ct);
+
+        return TypedResults.Ok(ApplicationDetailResponse.From(application));
+    }
+
+    private static async Task<Results<Ok<ApplicationDetailResponse>, NotFound>> UpdateStatus(
+        Guid id, UpdateStatusRequest request, JobTrackerDbContext db, TimeProvider clock, CancellationToken ct)
+    {
+        var application = await LoadWithDetailsAsync(db, id, ct);
+        if (application is null) return TypedResults.NotFound();
+
+        if (request.Status != application.Status)
+        {
+            application.ChangeStatus(request.Status, Today(clock));
+            await db.SaveChangesAsync(ct);
+        }
+
+        return TypedResults.Ok(ApplicationDetailResponse.From(application));
+    }
+
+    private static async Task<Results<Ok<ApplicationDetailResponse>, NotFound, ValidationProblem>> SaveAnalysis(
+        Guid id, SaveAnalysisRequest request, JobTrackerDbContext db, TimeProvider clock, CancellationToken ct)
+    {
+        var application = await LoadWithDetailsAsync(db, id, ct);
+        if (application is null) return TypedResults.NotFound();
+
+        var jobDescription = string.IsNullOrWhiteSpace(request.JobDescription) ? application.JobDescription : request.JobDescription;
+        if (string.IsNullOrWhiteSpace(jobDescription))
+        {
+            return TypedResults.ValidationProblem(new Dictionary<string, string[]>
+            {
+                ["jobDescription"] = ["Include the job post that was analysed."],
+            });
+        }
+
+        // JobAnalysis.Create validates (score 0-100, list sizes); a broken value becomes a 400 via the exception handler.
+        var analysis = JobAnalysis.Create(
+            request.Stack, request.Seniority, request.LocationRestrictions, request.EmploymentType, request.Salary,
+            request.MatchScore, request.Strengths, request.Gaps, request.RedFlags,
+            string.IsNullOrWhiteSpace(request.Model) ? "Claude (via MCP)" : request.Model, clock.GetUtcNow());
+
+        application.SetJobDescription(jobDescription);
+        application.RecordAnalysis(JobAnalyzer.ApplyRestrictionBackstop(analysis, application.JobDescription!));
         await db.SaveChangesAsync(ct);
 
         return TypedResults.Ok(ApplicationDetailResponse.From(application));

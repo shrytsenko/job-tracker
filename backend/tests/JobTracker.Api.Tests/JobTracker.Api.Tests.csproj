@@ -22,6 +22,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\JobTracker.Api\JobTracker.Api.csproj" />
+    <ProjectReference Include="..\..\src\JobTracker.Mcp\JobTracker.Mcp.csproj" />
   </ItemGroup>
 
 </Project>

@@ -3,6 +3,7 @@
     <Project Path="src/JobTracker.Api/JobTracker.Api.csproj" />
     <Project Path="src/JobTracker.Core/JobTracker.Core.csproj" />
     <Project Path="src/JobTracker.Infrastructure/JobTracker.Infrastructure.csproj" />
+    <Project Path="src/JobTracker.Mcp/JobTracker.Mcp.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/JobTracker.Api.Tests/JobTracker.Api.Tests.csproj" />
