@@ -1,7 +1,7 @@
 # UI image: build the static site with Node, serve it with nginx (non-root variant).
 # Build context: the frontend folder (docker compose does this for you).
 
-FROM node:24-alpine AS build
+FROM node:26-alpine AS build
 WORKDIR /app
 
 # Dependencies first, so "npm ci" is cached until package-lock.json changes.
