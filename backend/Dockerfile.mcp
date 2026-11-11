@@ -15,7 +15,7 @@ COPY src/JobTracker.Core/ src/JobTracker.Core/
 COPY src/JobTracker.Mcp/ src/JobTracker.Mcp/
 RUN dotnet publish src/JobTracker.Mcp/JobTracker.Mcp.csproj -c Release -o /app --no-restore -p:UseAppHost=false
 
-FROM mcr.microsoft.com/dotnet/runtime:10.0 AS runtime
+FROM mcr.microsoft.com/dotnet/runtime:11.0 AS runtime
 WORKDIR /app
 COPY --from=build /app .
 
