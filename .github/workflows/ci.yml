@@ -76,3 +76,42 @@ jobs:
       - run: docker compose --profile mcp build
         env:
           POSTGRES_PASSWORD: ci-build-only
+
+  e2e:
+    name: End-to-end tests (Playwright)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: e2e
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: e2e/package-lock.json
+
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+
+      # The whole app (PostgreSQL + API + UI) in Docker, as the isolated "job-tracker-e2e" stack from .env.e2e.
+      - run: npm run stack:up
+      - run: npx playwright test
+
+      - name: Show app logs
+        if: failure()
+        run: npm run stack:logs
+
+      # HTML report with traces (DOM snapshots, network, console) for any failed test.
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: e2e/playwright-report
+          retention-days: 7
+
+      - name: Stop the stack
+        if: always()
+        run: npm run stack:down

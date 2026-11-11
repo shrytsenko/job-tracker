@@ -178,13 +178,26 @@ It uses a separate `jobtracker_demo` database on the same PostgreSQL server and 
 
 ### Running the tests and checks
 
-The same checks run in [GitHub Actions](.github/workflows/ci.yml) on every push to `main` and on every pull request: backend build and tests, frontend lint and build, and a Docker image build.
+The same checks run in [GitHub Actions](.github/workflows/ci.yml) on every push to `main` and on every pull request: backend build and tests, frontend lint and build, a Docker image build, and the end-to-end tests against the app in Docker (with the Playwright report attached when they fail).
 
 ```bash
 cd backend && dotnet test          # unit + integration tests (integration tests need Docker running)
 cd frontend && npm run build       # TypeScript type-check + production build
 cd frontend && npm run lint        # oxlint
 ```
+
+**End-to-end tests** ([Playwright](https://playwright.dev), in `e2e/`) drive the real UI in Chromium against the whole app running in Docker. They cover the main flows: create an application through the form, change its status on the stage track, and see an overdue next action in Follow-ups.
+
+```bash
+cd e2e
+npm install
+npx playwright install chromium   # one time
+npm run stack:up                  # isolated stack: project job-tracker-e2e, http://localhost:8081
+npm test                          # or: npm run test:ui
+npm run stack:down                # removes the e2e containers and their database
+```
+
+They never touch your own data: the e2e stack has its own database volume and ports (web 8081, Postgres 5433), uses `e2e/.env.e2e` instead of your `.env`, and the test setup refuses to run against port 8080.
 
 ## API overview
 
@@ -221,6 +234,7 @@ backend/
   src/JobTracker.Api             Minimal API endpoints, request/response contracts, error handling, OpenAPI.
   tests/JobTracker.Core.Tests    Unit tests for domain rules (xUnit).
   tests/JobTracker.Api.Tests     Integration tests through HTTP with WebApplicationFactory and a real PostgreSQL (Testcontainers).
+e2e/                             Playwright end-to-end tests (TypeScript) against the app running in Docker.
 frontend/
   src/api                        Typed API client (the only place that calls fetch) and types mirroring the C# contracts.
   src/pages                      One component per route: applications list/detail/form, follow-ups, contacts.
