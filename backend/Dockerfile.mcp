@@ -2,7 +2,7 @@
 # Build context: the backend folder (docker compose build mcp does this for you).
 # Claude starts it on demand: docker run -i --rm --network job-tracker_default job-tracker-mcp
 
-FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:11.0 AS build
 WORKDIR /src
 
 # Project files first, so "dotnet restore" is cached until a .csproj changes.

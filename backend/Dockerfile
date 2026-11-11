@@ -1,7 +1,7 @@
 # API image: build with the full SDK, run on the small ASP.NET runtime image.
 # Build context: the backend folder (docker compose does this for you).
 
-FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:11.0 AS build
 WORKDIR /src
 
 # Project files first, so "dotnet restore" is cached until a .csproj changes.
