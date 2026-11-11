@@ -163,7 +163,12 @@ function EditForm({
     <form className="next-action-form" onSubmit={handleSubmit}>
       <h2>{hasExisting ? 'Change next action' : 'What’s next?'}</h2>
       <Field label="Next action">
-        <input value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Follow up with recruiter" autoFocus />
+        <input
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          placeholder="Follow up with recruiter"
+          autoFocus
+        />
       </Field>
       <Field label="Due on" help="When it's due. Due and overdue actions show up in Follow-ups.">
         <input type="date" value={dueOn} onChange={(e) => setDueOn(e.target.value)} />

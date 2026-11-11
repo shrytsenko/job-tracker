@@ -19,7 +19,13 @@ export function isoDate(daysFromToday: number): string {
  */
 export async function createApplication(request: APIRequestContext, fields: Record<string, unknown>): Promise<string> {
   const response = await request.post('/api/applications', {
-    data: { roleTitle: 'Senior .NET Developer', track: 'Developer', channel: 'LinkedIn', employmentType: 'Permanent', ...fields },
+    data: {
+      roleTitle: 'Senior .NET Developer',
+      track: 'Developer',
+      channel: 'LinkedIn',
+      employmentType: 'Permanent',
+      ...fields,
+    },
   })
   expect(response.ok(), await response.text()).toBeTruthy()
   return (await response.json()).id

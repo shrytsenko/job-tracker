@@ -16,7 +16,7 @@ concurrency:
 
 jobs:
   backend:
-    name: Backend (build + tests)
+    name: Backend (format + analysis + build + tests)
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -29,6 +29,9 @@ jobs:
           dotnet-version: 10.0.x
 
       - run: dotnet restore
+
+      # Code style from .editorconfig: fails if any file would be reformatted (fix locally with "dotnet format").
+      - run: dotnet format JobTracker.slnx --verify-no-changes --no-restore
 
       # Directory.Build.props treats warnings as errors, so a new warning fails the build.
       - run: dotnet build --no-restore --configuration Release
@@ -45,7 +48,7 @@ jobs:
           if-no-files-found: ignore
 
   frontend:
-    name: Frontend (lint + type-check + build)
+    name: Frontend (lint + format + type-check + build)
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -61,6 +64,8 @@ jobs:
 
       - run: npm ci
       - run: npm run lint
+      # Prettier: fails if any file is not formatted (fix locally with "npm run format").
+      - run: npm run format:check
       # "build" runs the TypeScript compiler first, so type errors fail here.
       - run: npm run build
 
@@ -93,6 +98,9 @@ jobs:
           cache-dependency-path: e2e/package-lock.json
 
       - run: npm ci
+      # Fast checks first, so a type or style mistake fails before the Docker stack is built.
+      - run: npm run typecheck
+      - run: npm run format:check
       - run: npx playwright install --with-deps chromium
 
       # The whole app (PostgreSQL + API + UI) in Docker, as the isolated "job-tracker-e2e" stack from .env.e2e.

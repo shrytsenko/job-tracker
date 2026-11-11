@@ -12,8 +12,15 @@ namespace JobTracker.Infrastructure.Ai;
 /// provider: it maps the request to a Messages API call with structured output, and every failure to an
 /// <see cref="LlmException"/> the API can explain to the user. Prompts and job text are never logged.
 /// </summary>
-public sealed class AnthropicLlmClient : ILlmClient
+public sealed partial class AnthropicLlmClient : ILlmClient, IDisposable
 {
+    // Source-generated logging: typed, allocation-free when the level is off. Prompts and job text are never logged.
+    [LoggerMessage(Level = LogLevel.Warning, Message = "Claude request failed after {ElapsedMs} ms: {Failure} ({ExceptionType}): {Reason}")]
+    private static partial void LogRequestFailed(ILogger logger, long elapsedMs, LlmFailure failure, string exceptionType, string reason);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Claude answered with {Model} in {ElapsedMs} ms (stop reason {StopReason}, {InputTokens} in / {OutputTokens} out)")]
+    private static partial void LogAnswered(ILogger logger, string model, long elapsedMs, string? stopReason, long inputTokens, long outputTokens);
+
     private const int MaxTokens = 16000;
 
     private readonly AnthropicOptions _options;
@@ -36,6 +43,9 @@ public sealed class AnthropicLlmClient : ILlmClient
             };
         }
     }
+
+    /// <summary>The SDK client pools HTTP connections; the DI container disposes this singleton on shutdown.</summary>
+    public void Dispose() => _client?.Dispose();
 
     public async Task<LlmJsonResponse> GenerateJsonAsync(LlmJsonRequest request, CancellationToken cancellationToken)
     {
@@ -72,15 +82,14 @@ public sealed class AnthropicLlmClient : ILlmClient
         }
         catch (Exception ex) when (Map(ex) is { } mapped)
         {
-            _logger.LogWarning("Claude request failed after {ElapsedMs} ms: {Failure} ({ExceptionType}): {Message}",
-                started.ElapsedMilliseconds, mapped.Failure, ex.GetType().Name, mapped.Message);
+            LogRequestFailed(_logger, started.ElapsedMilliseconds, mapped.Failure, ex.GetType().Name, mapped.Message);
             throw mapped;
         }
 
-        _logger.LogInformation("Claude answered with {Model} in {ElapsedMs} ms (stop reason {StopReason}, {InputTokens} in / {OutputTokens} out)",
-            response.Model, started.ElapsedMilliseconds, response.StopReason, response.Usage.InputTokens, response.Usage.OutputTokens);
-
+        var answeredBy = response.Model.ToString() ?? _options.Model;
         var stopReason = response.StopReason?.ToString();
+        LogAnswered(_logger, answeredBy, started.ElapsedMilliseconds, stopReason, response.Usage.InputTokens, response.Usage.OutputTokens);
+
         if (stopReason == "refusal")
         {
             throw new LlmException(LlmFailure.Refused, "The AI declined to analyse this text.");
@@ -97,7 +106,7 @@ public sealed class AnthropicLlmClient : ILlmClient
             throw new LlmException(LlmFailure.InvalidOutput, "The AI returned an empty answer.");
         }
 
-        return new LlmJsonResponse(json, response.Model.ToString() ?? _options.Model);
+        return new LlmJsonResponse(json, answeredBy);
     }
 
     /// <summary>Most specific first: each SDK exception becomes a failure the user can act on.</summary>

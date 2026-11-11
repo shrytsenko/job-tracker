@@ -81,6 +81,9 @@ async function findApplicationId(request: APIRequestContext, company: string): P
   const response = await request.get(`/api/applications?search=${encodeURIComponent(company)}`)
   const applications: { id: string; company: string }[] = await response.json()
   const match = applications.find((a) => a.company === company)
-  if (!match) throw new Error(`Demo application "${company}" not found. Run npm run stack:down, then stack:up, for fresh demo data.`)
+  if (!match)
+    throw new Error(
+      `Demo application "${company}" not found. Run npm run stack:down, then stack:up, for fresh demo data.`,
+    )
   return match.id
 }

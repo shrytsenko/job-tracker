@@ -54,7 +54,9 @@ function ProfileForm({ profile }: { profile: Profile }) {
       <div className="page-header">
         <div>
           <h1>Profile</h1>
-          <p className="subtitle">Job analysis compares every job post with this summary, so it drives the match score and red flags.</p>
+          <p className="subtitle">
+            Job analysis compares every job post with this summary, so it drives the match score and red flags.
+          </p>
         </div>
       </div>
 
@@ -63,7 +65,12 @@ function ProfileForm({ profile }: { profile: Profile }) {
 
         <label className="field profile-name">
           <span className="field-label">Your name</span>
-          <input value={fullName} onChange={(e) => setFullName(e.target.value)} maxLength={100} placeholder="Used to sign reply drafts" />
+          <input
+            value={fullName}
+            onChange={(e) => setFullName(e.target.value)}
+            maxLength={100}
+            placeholder="Used to sign reply drafts"
+          />
         </label>
 
         <label className="field">
@@ -73,7 +80,9 @@ function ProfileForm({ profile }: { profile: Profile }) {
             maxLength={MAX_LENGTH}
             value={cvSummary}
             onChange={(e) => setCvSummary(e.target.value)}
-            placeholder={'Senior .NET developer, 12 years in IT. C#, ASP.NET Core, EF Core, SQL Server, Azure. 5 years of test automation (Playwright, NUnit). Based in Barcelona, EU citizen, open to remote EU/UK or hybrid in Barcelona. English C1, Spanish B2.'}
+            placeholder={
+              'Senior .NET developer, 12 years in IT. C#, ASP.NET Core, EF Core, SQL Server, Azure. 5 years of test automation (Playwright, NUnit). Based in Barcelona, EU citizen, open to remote EU/UK or hybrid in Barcelona. English C1, Spanish B2.'
+            }
           />
           <span className="field-hint">
             {cvSummary.length.toLocaleString()} / {MAX_LENGTH.toLocaleString()} characters
@@ -84,11 +93,16 @@ function ProfileForm({ profile }: { profile: Profile }) {
           <h2>What to include</h2>
           <ul>
             <li>Your main stack and years of experience with each part of it.</li>
-            <li>Where you live and where you are allowed to work. Restrictions like &ldquo;US only&rdquo; are flagged against this.</li>
+            <li>
+              Where you live and where you are allowed to work. Restrictions like &ldquo;US only&rdquo; are flagged
+              against this.
+            </li>
             <li>Languages you speak, and the level.</li>
             <li>What you&rsquo;re looking for: role types, seniority, remote or on-site, contract or permanent.</li>
           </ul>
-          <p className="muted">It stays in your local database and is sent only to the AI provider, only when you analyse a job post.</p>
+          <p className="muted">
+            It stays in your local database and is sent only to the AI provider, only when you analyse a job post.
+          </p>
         </div>
 
         <div className="form-actions">

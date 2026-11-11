@@ -194,13 +194,18 @@ It uses a separate `jobtracker_demo` database on the same PostgreSQL server and 
 
 ### Running the tests and checks
 
-The same checks run in [GitHub Actions](.github/workflows/ci.yml) on every push to `main` and on every pull request: backend build and tests, frontend lint and build, a Docker image build, and the end-to-end tests against the app in Docker (with the Playwright report attached when they fail).
+The same checks run in [GitHub Actions](.github/workflows/ci.yml) on every push to `main` and on every pull request: backend format check, analysis, build and tests; frontend lint, format check and build; a Docker image build; and the end-to-end tests against the app in Docker (with the Playwright report attached when they fail). [CodeQL](.github/workflows/codeql.yml) scans the C# and TypeScript code for security issues, and [Dependabot](.github/dependabot.yml) opens weekly pull requests for outdated packages, base images and actions.
 
 ```bash
-cd backend && dotnet test          # unit + integration tests (integration tests need Docker running)
-cd frontend && npm run build       # TypeScript type-check + production build
-cd frontend && npm run lint        # oxlint
+cd backend && dotnet test                                # unit + integration tests (integration tests need Docker running)
+cd backend && dotnet format JobTracker.slnx --verify-no-changes   # formatting and code style
+cd frontend && npm run build                             # TypeScript type-check + production build
+cd frontend && npm run lint                              # oxlint
+cd frontend && npm run format:check                      # Prettier (npm run format to fix)
+cd e2e && npm run typecheck && npm run format:check      # type-check and format the test code too
 ```
+
+Code style is defined once in [`.editorconfig`](.editorconfig) (C#) and [`.prettierrc.json`](.prettierrc.json) (TypeScript). The backend builds with the recommended .NET analyzers and code-style rules enforced, and warnings are treated as errors, so a style or analyzer issue fails the build locally and in CI. Every public member of `JobTracker.Core` must have an XML doc comment; the other projects have comments where they add something.
 
 **End-to-end tests** ([Playwright](https://playwright.dev), in `e2e/`) drive the real UI in Chromium against the whole app running in Docker. They cover the main flows: create an application through the form, change its status on the stage track, and see an overdue next action in Follow-ups.
 
@@ -319,6 +324,19 @@ Key decisions:
 - **The AI sits behind `ILlmClient`.** Core owns the prompt, the JSON schema and the validation (`JobAnalyzer`); `AnthropicLlmClient` in Infrastructure is the only code that knows about Claude (official Anthropic SDK, structured output, server-side refusal fallback). Tests and CI use a fake client and never call the real API.
 - **A deterministic backstop for restrictions.** `RestrictionScanner` always red-flags phrasings like "US only", "must be authorized to work in the United States", "W2" or "no visa sponsorship", even if the model misses them. The model handles nuance; the rule guarantees the one thing that must never slip through.
 - **Integration tests run the real migrations** against a real PostgreSQL in a throwaway Docker container (Testcontainers): one container per test run, one database per test class. They test the same database engine and schema the app uses.
+
+## Security
+
+This is a single-user tool meant to run on your own machine. It has **no authentication**, so it binds to `localhost` only; add authentication and rate limiting before exposing it anywhere else. Within that scope:
+
+- **SQL injection.** All database access goes through EF Core LINQ, which always sends parameterised queries; there is no raw SQL in the code.
+- **Prompt injection.** Job posts and recruiter messages are untrusted text from the internet. The prompts put them in delimited sections (`<job_post>`) and tell the model to treat them as data, never as instructions. The model's answer must match a JSON schema and is validated before saving, and the "US only" style red flags come from a deterministic rule as well, so a post can't talk its way out of them. Drafts are only ever shown as editable text; nothing is sent automatically.
+- **MCP server.** It calls the REST API only (no database credentials) and has no delete tool. Its server instructions, the descriptions of tools that return pasted text, and the `get_job_post` result all tell Claude to treat that text as data and to change data only when you asked.
+- **Browser hardening.** nginx sends a strict Content-Security-Policy (`'self'` only, no inline scripts or styles, no framing) and `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy` and `Cross-Origin-Opener-Policy` headers, and hides its version. An e2e test checks the headers and that every main page renders with no CSP violations.
+- **Input limits.** Requests are validated (ProblemDetails on errors), notes are capped at 10,000 characters in the API, the database and the forms, and nginx limits request bodies to 1 MB.
+- **Containers.** API, MCP and web images run as non-root users; only the web UI and PostgreSQL are published, both on `127.0.0.1`.
+- **Secrets.** The database password and API key come from `.env`, environment variables or .NET user secrets, never from the repository; job posts and personal data are not logged.
+- **Supply chain.** CodeQL scans every push and pull request, and Dependabot keeps NuGet, npm, Docker and GitHub Actions dependencies up to date.
 
 ## Privacy
 

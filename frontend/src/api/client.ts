@@ -95,7 +95,10 @@ export const api = {
   setNextAction: (applicationId: string, body: SetNextActionRequest) =>
     request<ApplicationDetail>(`/api/applications/${applicationId}/next-action`, { method: 'PUT', body: json(body) }),
   completeNextAction: (applicationId: string, body: CompleteNextActionRequest) =>
-    request<ApplicationDetail>(`/api/applications/${applicationId}/next-action/complete`, { method: 'POST', body: json(body) }),
+    request<ApplicationDetail>(`/api/applications/${applicationId}/next-action/complete`, {
+      method: 'POST',
+      body: json(body),
+    }),
 
   getFollowUps: (days: number) => request<FollowUp[]>(`/api/applications/follow-ups${toQuery({ days })}`),
 

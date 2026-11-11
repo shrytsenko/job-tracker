@@ -10,6 +10,7 @@ namespace JobTracker.Core.Ai;
 /// </summary>
 public sealed class JobAnalyzer(ILlmClient llm)
 {
+    /// <summary>The instructions for the model. Public so tests can check the rules it states.</summary>
     public const string SystemPrompt =
         """
         You help a software engineer triage job posts during a job search. You compare one job post with

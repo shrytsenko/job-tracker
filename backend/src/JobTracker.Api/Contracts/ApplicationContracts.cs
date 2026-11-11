@@ -26,7 +26,7 @@ public record SaveApplicationRequest(
     DateOnly? LastContactOn = null,
     [MaxLength(500)] string? NextActionDescription = null,
     DateOnly? NextActionDueOn = null,
-    string? Notes = null);
+    [MaxLength(Application.MaxNotesLength)] string? Notes = null);
 
 public record AddActivityRequest(
     ActivityType Type,

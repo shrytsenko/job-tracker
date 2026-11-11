@@ -7,20 +7,46 @@ namespace JobTracker.Core.Entities;
 /// </summary>
 public sealed class JobAnalysis
 {
+    /// <summary>Most entries kept in each list; extra ones are dropped.</summary>
     public const int MaxItems = 25;
+
+    /// <summary>Longest list entry; longer ones are cut.</summary>
     public const int MaxItemLength = 300;
+
+    /// <summary>Longest single-value field; longer ones are cut.</summary>
     public const int MaxFieldLength = 300;
 
+    /// <summary>Technologies the post asks for, e.g. "C#", "ASP.NET Core", "Azure".</summary>
     public IReadOnlyList<string> Stack { get; private set; } = [];
+
+    /// <summary>Seniority as stated in the post; null when it doesn't say.</summary>
     public string? Seniority { get; private set; }
+
+    /// <summary>Location or work-authorisation limits, e.g. "Remote, EU only"; null when none are stated.</summary>
     public string? LocationRestrictions { get; private set; }
+
+    /// <summary>Employment type in the post's own words; free text, unlike <see cref="Enums.EmploymentType"/>.</summary>
     public string? EmploymentType { get; private set; }
+
+    /// <summary>The salary or rate if the post states one, as written.</summary>
     public string? Salary { get; private set; }
+
+    /// <summary>How well the CV matches the post, from 0 (no match) to 100.</summary>
     public int MatchScore { get; private set; }
+
+    /// <summary>Where the CV matches the post well.</summary>
     public IReadOnlyList<string> Strengths { get; private set; } = [];
+
+    /// <summary>Requirements the CV does not show.</summary>
     public IReadOnlyList<string> Gaps { get; private set; } = [];
+
+    /// <summary>Deal-breakers to check before applying, e.g. "US work authorization required".</summary>
     public IReadOnlyList<string> RedFlags { get; private set; } = [];
+
+    /// <summary>The model that produced the analysis, as reported by the provider.</summary>
     public string Model { get; private set; } = null!;
+
+    /// <summary>When the analysis was made.</summary>
     public DateTimeOffset AnalyzedAt { get; private set; }
 
     private JobAnalysis()

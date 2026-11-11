@@ -11,7 +11,7 @@ public record SaveContactRequest(
     [MaxLength(200)] string? Company = null,
     [Url, MaxLength(2000)] string? LinkedInUrl = null,
     [EmailAddress, MaxLength(320)] string? Email = null,
-    string? Notes = null,
+    [MaxLength(Contact.MaxNotesLength)] string? Notes = null,
     DateOnly? LastContactOn = null);
 
 public record ContactSummaryResponse(Guid Id, string Name, ContactRole Role, string? Company)

@@ -22,6 +22,7 @@ public class JobTrackerDbContext(DbContextOptions<JobTrackerDbContext> options) 
         modelBuilder.Entity<Application>(entity =>
         {
             entity.Property(a => a.JobDescription).HasMaxLength(Application.MaxJobDescriptionLength);
+            entity.Property(a => a.Notes).HasMaxLength(Application.MaxNotesLength);
 
             // The analysis lives in its own table (it is optional and fairly large); lists become PostgreSQL text[] columns.
             entity.OwnsOne(a => a.Analysis, analysis =>
@@ -76,6 +77,7 @@ public class JobTrackerDbContext(DbContextOptions<JobTrackerDbContext> options) 
             entity.Property(c => c.Company).HasMaxLength(200);
             entity.Property(c => c.LinkedInUrl).HasMaxLength(2000);
             entity.Property(c => c.Email).HasMaxLength(320);
+            entity.Property(c => c.Notes).HasMaxLength(Contact.MaxNotesLength);
             entity.Property(c => c.Role).HasConversion<string>().HasMaxLength(30);
         });
 

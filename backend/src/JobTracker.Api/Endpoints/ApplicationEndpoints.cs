@@ -301,7 +301,7 @@ public static class ApplicationEndpoints
         catch (LlmException ex)
         {
             // The job text and CV are deliberately not logged (personal data); the failure kind is enough to diagnose.
-            logger.LogWarning("Job analysis for application {ApplicationId} failed: {Failure}", id, ex.Failure);
+            ApiLog.AnalysisFailed(logger, id, ex.Failure);
             return TypedResults.Problem(statusCode: StatusFor(ex.Failure), title: "Analysis failed", detail: ex.Message);
         }
 
@@ -348,7 +348,7 @@ public static class ApplicationEndpoints
         }
         catch (LlmException ex)
         {
-            logger.LogWarning("Reply draft for application {ApplicationId} failed: {Failure}", id, ex.Failure);
+            ApiLog.ReplyDraftFailed(logger, id, ex.Failure);
             return TypedResults.Problem(statusCode: StatusFor(ex.Failure), title: "Draft failed", detail: ex.Message);
         }
     }

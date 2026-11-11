@@ -30,5 +30,7 @@ export default async function globalSetup(config: FullConfig): Promise<void> {
     await new Promise((resolve) => setTimeout(resolve, 2_000))
   }
 
-  throw new Error(`The app at ${baseURL} did not become ready within 2 minutes (${lastError}). Did you run npm run stack:up?`)
+  throw new Error(
+    `The app at ${baseURL} did not become ready within 2 minutes (${lastError}). Did you run npm run stack:up?`,
+  )
 }

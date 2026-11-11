@@ -113,7 +113,13 @@ function FunnelPanel({ funnel, max }: { funnel: TrackFunnel; max: number }) {
     const description = previous
       ? `${step.reached} of ${previous.reached} ${reachedPhrase[step.stage]}${conversion ? ` (${conversion})` : ''}`
       : `${step.reached} ${step.reached === 1 ? 'application' : 'applications'} sent`
-    return { key: step.stage, label: label(step.stage), value: step.reached, note: conversion ?? undefined, description }
+    return {
+      key: step.stage,
+      label: label(step.stage),
+      value: step.reached,
+      note: conversion ?? undefined,
+      description,
+    }
   })
 
   const offers = funnel.steps[funnel.steps.length - 1].reached

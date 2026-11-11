@@ -133,7 +133,8 @@ namespace JobTracker.Infrastructure.Persistence.Migrations
                         .HasColumnType("date");
 
                     b.Property<string>("Notes")
-                        .HasColumnType("text");
+                        .HasMaxLength(10000)
+                        .HasColumnType("character varying(10000)");
 
                     b.Property<string>("RemoteRegion")
                         .HasMaxLength(100)
@@ -189,7 +190,8 @@ namespace JobTracker.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(200)");
 
                     b.Property<string>("Notes")
-                        .HasColumnType("text");
+                        .HasMaxLength(10000)
+                        .HasColumnType("character varying(10000)");
 
                     b.Property<string>("Role")
                         .IsRequired()

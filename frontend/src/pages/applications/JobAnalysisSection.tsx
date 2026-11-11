@@ -70,7 +70,12 @@ export function JobAnalysisSection({ application, onAnalyzed }: Props) {
               {analyzing ? 'Analysing…' : 'Analyse job post'}
             </button>
             {editing && (
-              <button type="button" className="button-sm button-ghost" disabled={analyzing} onClick={() => setEditing(false)}>
+              <button
+                type="button"
+                className="button-sm button-ghost"
+                disabled={analyzing}
+                onClick={() => setEditing(false)}
+              >
                 Cancel
               </button>
             )}
@@ -110,7 +115,8 @@ function AnalysisResult({
       {analysis.redFlags.length > 0 && (
         <div className="red-flags" role="alert">
           <h3>
-            <span aria-hidden="true">⚠</span> {analysis.redFlags.length === 1 ? 'Red flag' : `${analysis.redFlags.length} red flags`}
+            <span aria-hidden="true">⚠</span>{' '}
+            {analysis.redFlags.length === 1 ? 'Red flag' : `${analysis.redFlags.length} red flags`}
           </h3>
           <ul>
             {analysis.redFlags.map((flag) => (
@@ -171,7 +177,17 @@ function AnalysisResult({
   )
 }
 
-function FitList({ title, items, empty, className }: { title: string; items: string[]; empty: string; className: string }) {
+function FitList({
+  title,
+  items,
+  empty,
+  className,
+}: {
+  title: string
+  items: string[]
+  empty: string
+  className: string
+}) {
   return (
     <div className={`fit-list ${className}`}>
       <h3>{title}</h3>

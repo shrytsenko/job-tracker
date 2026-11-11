@@ -1,0 +1,36 @@
+name: CodeQL
+
+# Static security analysis of the C# backend and the TypeScript frontend/e2e code.
+# Findings show up under the repository's Security tab ("Code scanning").
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: '17 6 * * 1' # Mondays, to catch new queries even without code changes
+
+permissions:
+  contents: read
+  security-events: write # upload the results to code scanning
+
+jobs:
+  analyze:
+    name: Analyze (${{ matrix.language }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [csharp, javascript-typescript]
+    steps:
+      - uses: actions/checkout@v5
+
+      # No build needed: CodeQL reads the source directly for both languages.
+      - uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: none
+          queries: security-and-quality
+
+      - uses: github/codeql-action/analyze@v3
+        with:
+          category: /language:${{ matrix.language }}

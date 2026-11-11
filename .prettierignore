@@ -1,0 +1,8 @@
+# Build output, reports and lock files are generated, not formatted by hand.
+**/dist/
+**/node_modules/
+**/playwright-report/
+**/test-results/
+**/package-lock.json
+backend/
+docs/

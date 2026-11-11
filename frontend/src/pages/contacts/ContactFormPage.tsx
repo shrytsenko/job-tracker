@@ -112,22 +112,40 @@ function ContactForm({ existing }: { existing?: ContactDetail }) {
             <input value={values.name} onChange={(e) => set('name', e.target.value)} required autoFocus={!existing} />
           </Field>
           <Field label="Role">
-            <Select value={values.role} options={contactRoles} onChange={(v) => v && set('role', v)} formatOption={label} />
+            <Select
+              value={values.role}
+              options={contactRoles}
+              onChange={(v) => v && set('role', v)}
+              formatOption={label}
+            />
           </Field>
-          <Field label="Company" help="Where they work. For agency recruiters, this is the agency, not the hiring company." errors={fieldErrors.company}>
-            <SuggestionInput value={values.company} onChange={(v) => set('company', v)} loadSuggestions={api.listCompanies} />
+          <Field
+            label="Company"
+            help="Where they work. For agency recruiters, this is the agency, not the hiring company."
+            errors={fieldErrors.company}
+          >
+            <SuggestionInput
+              value={values.company}
+              onChange={(v) => set('company', v)}
+              loadSuggestions={api.listCompanies}
+            />
           </Field>
           <Field label="Email" errors={fieldErrors.email}>
             <input type="email" value={values.email} onChange={(e) => set('email', e.target.value)} />
           </Field>
           <Field label="LinkedIn URL" errors={fieldErrors.linkedInUrl} wide>
-            <input type="url" value={values.linkedInUrl} onChange={(e) => set('linkedInUrl', e.target.value)} placeholder="https://www.linkedin.com/in/…" />
+            <input
+              type="url"
+              value={values.linkedInUrl}
+              onChange={(e) => set('linkedInUrl', e.target.value)}
+              placeholder="https://www.linkedin.com/in/…"
+            />
           </Field>
           <Field label="Last contact on">
             <input type="date" value={values.lastContactOn} onChange={(e) => set('lastContactOn', e.target.value)} />
           </Field>
           <Field label="Notes" errors={fieldErrors.notes} wide>
-            <textarea rows={4} value={values.notes} onChange={(e) => set('notes', e.target.value)} />
+            <textarea rows={4} maxLength={10000} value={values.notes} onChange={(e) => set('notes', e.target.value)} />
           </Field>
         </fieldset>
 

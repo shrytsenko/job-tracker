@@ -3,8 +3,14 @@ using JobTracker.Core.Enums;
 
 namespace JobTracker.Core.Reporting;
 
+/// <summary>How many applications have one status.</summary>
+/// <param name="Status">The status.</param>
+/// <param name="Count">Applications currently in it.</param>
 public sealed record StatusCount(ApplicationStatus Status, int Count);
 
+/// <summary>How many applications belong to one track.</summary>
+/// <param name="Track">The track.</param>
+/// <param name="Count">Applications on it, in any status.</param>
 public sealed record TrackCount(Track Track, int Count);
 
 /// <param name="Reached">Applications whose furthest stage is this stage or later.</param>
@@ -15,6 +21,11 @@ public sealed record FunnelStep(ApplicationStatus Stage, int Reached, double? Co
 /// <param name="OverallConversion">Offers / applied (0–1); null when nothing was applied to.</param>
 public sealed record TrackFunnel(Track Track, int Total, IReadOnlyList<FunnelStep> Steps, double? OverallConversion);
 
+/// <summary>Everything the dashboard shows.</summary>
+/// <param name="Total">All applications.</param>
+/// <param name="ByStatus">A count for every status, zeros included.</param>
+/// <param name="ByTrack">A count for every track, zeros included.</param>
+/// <param name="Funnels">The pipeline funnel for every track.</param>
 public sealed record DashboardStats(
     int Total,
     IReadOnlyList<StatusCount> ByStatus,
@@ -38,6 +49,7 @@ public static class DashboardCalculator
         ApplicationStatus.Offer,
     ];
 
+    /// <summary>Computes the counts and the per-track funnels for the given applications.</summary>
     public static DashboardStats Calculate(IReadOnlyCollection<Application> applications)
     {
         // Every status and track is listed, zeros included, so the UI never has to fill gaps.

@@ -24,7 +24,9 @@ export function ApplicationDetailPage() {
   if (error) {
     return (
       <section>
-        <ErrorBanner error={error instanceof ApiError && error.status === 404 ? new Error('Application not found.') : error} />
+        <ErrorBanner
+          error={error instanceof ApiError && error.status === 404 ? new Error('Application not found.') : error}
+        />
         <Link to="/">Back to applications</Link>
       </section>
     )
@@ -88,7 +90,9 @@ export function ApplicationDetailPage() {
       <StageTrack
         status={application.status}
         furthestStage={application.furthestStage}
-        onChange={(status) => mutate(() => api.updateApplication(application.id, requestWithStatus(application, status)))}
+        onChange={(status) =>
+          mutate(() => api.updateApplication(application.id, requestWithStatus(application, status)))
+        }
       />
 
       <ErrorBanner error={actionError} />
@@ -208,7 +212,10 @@ function TimelinePanel({ application, mutate }: { application: ApplicationDetail
     <section className="detail-section">
       <h2>Timeline</h2>
       <form className="activity-form" onSubmit={handleSubmit}>
-        <Field label="Type" help="What happened. A message, reply, interview or take-home counts as contact; a note is just for you.">
+        <Field
+          label="Type"
+          help="What happened. A message, reply, interview or take-home counts as contact; a note is just for you."
+        >
           <Select value={type} options={activityTypes} onChange={(v) => v && setType(v)} formatOption={label} />
         </Field>
         <Field label="Date">

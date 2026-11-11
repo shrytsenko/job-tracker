@@ -153,7 +153,11 @@ export function ReplyDraftSection({ application, onLogged }: Props) {
             </Field>
           )}
           <Field label="Draft (edit before sending)" wide>
-            <textarea rows={Math.min(16, Math.max(6, body.split('\n').length + 1))} value={body} onChange={(e) => setBody(e.target.value)} />
+            <textarea
+              rows={Math.min(16, Math.max(6, body.split('\n').length + 1))}
+              value={body}
+              onChange={(e) => setBody(e.target.value)}
+            />
           </Field>
           {body.includes('[') && <p className="hint">Fill in the [bracketed] placeholders before sending.</p>}
           <div className="analysis-footer">

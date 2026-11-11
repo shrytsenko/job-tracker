@@ -1,0 +1,79 @@
+# Shared code style for the whole repository. Visual Studio, Rider and VS Code read this file;
+# "dotnet format" and the .NET analyzers in the build enforce the C# part.
+root = true
+
+[*]
+charset = utf-8
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 2
+
+[*.md]
+trim_trailing_whitespace = false
+
+[*.{cs,csproj,props,targets,slnx}]
+indent_size = 4
+
+[*.cs]
+# Layout and namespaces
+csharp_style_namespace_declarations = file_scoped:warning
+csharp_using_directive_placement = outside_namespace:warning
+dotnet_sort_system_directives_first = true
+csharp_new_line_before_open_brace = all
+
+# Unused usings fail the build (IDE0005 needs GenerateDocumentationFile, see Directory.Build.props)
+dotnet_diagnostic.IDE0005.severity = warning
+
+# Prefer var where the type is obvious; keep explicit types allowed elsewhere
+csharp_style_var_for_built_in_types = true:suggestion
+csharp_style_var_when_type_is_apparent = true:suggestion
+csharp_style_var_elsewhere = true:suggestion
+
+# Modern C# that the code already uses
+csharp_style_prefer_primary_constructors = true:suggestion
+csharp_style_expression_bodied_methods = when_on_single_line:suggestion
+csharp_prefer_braces = when_multiline:suggestion
+dotnet_style_readonly_field = true:warning
+dotnet_style_prefer_collection_expression = when_types_loosely_match:suggestion
+
+# Naming: PascalCase types and members, _camelCase private fields, IPascalCase interfaces
+dotnet_naming_rule.interfaces_start_with_i.symbols = interfaces
+dotnet_naming_rule.interfaces_start_with_i.style = prefix_i
+dotnet_naming_rule.interfaces_start_with_i.severity = warning
+dotnet_naming_symbols.interfaces.applicable_kinds = interface
+dotnet_naming_style.prefix_i.required_prefix = I
+dotnet_naming_style.prefix_i.capitalization = pascal_case
+
+dotnet_naming_rule.private_fields_underscore.symbols = private_fields
+dotnet_naming_rule.private_fields_underscore.style = underscore_camel
+dotnet_naming_rule.private_fields_underscore.severity = warning
+dotnet_naming_symbols.private_fields.applicable_kinds = field
+dotnet_naming_symbols.private_fields.applicable_accessibilities = private
+dotnet_naming_style.underscore_camel.required_prefix = _
+dotnet_naming_style.underscore_camel.capitalization = camel_case
+
+# Constants and static readonly fields stay PascalCase (checked before the private-field rule above)
+dotnet_naming_rule.constants_pascal.symbols = constants
+dotnet_naming_rule.constants_pascal.style = pascal
+dotnet_naming_rule.constants_pascal.severity = warning
+dotnet_naming_symbols.constants.applicable_kinds = field
+dotnet_naming_symbols.constants.required_modifiers = const
+dotnet_naming_rule.static_readonly_pascal.symbols = static_readonly
+dotnet_naming_rule.static_readonly_pascal.style = pascal
+dotnet_naming_rule.static_readonly_pascal.severity = warning
+dotnet_naming_symbols.static_readonly.applicable_kinds = field
+dotnet_naming_symbols.static_readonly.required_modifiers = static, readonly
+dotnet_naming_style.pascal.capitalization = pascal_case
+
+# Missing XML comments (CS1591, CS1573) and CA1859 are switched off in backend/Directory.Build.props,
+# so the choice also holds in the Docker build, which cannot see this file.
+
+# Generated code (EF migrations) is not ours to style.
+[**/Migrations/*.cs]
+generated_code = true
+dotnet_analyzer_diagnostic.severity = none
+
+# Tests name methods Method_Scenario_ExpectedResult, the usual xUnit convention, so underscores are fine there.
+[backend/tests/**.cs]
+dotnet_diagnostic.CA1707.severity = none

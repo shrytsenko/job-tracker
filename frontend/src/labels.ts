@@ -37,7 +37,11 @@ export function statusTone(status: ApplicationStatus): 'neutral' | 'active' | 'g
 export function formatDate(date: string | null | undefined): string {
   if (!date) return '—'
   const [year, month, day] = date.split('-').map(Number)
-  return new Date(year, month - 1, day).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })
+  return new Date(year, month - 1, day).toLocaleDateString(undefined, {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  })
 }
 
 /** Today as "YYYY-MM-DD" in local time (what <input type="date"> uses). */

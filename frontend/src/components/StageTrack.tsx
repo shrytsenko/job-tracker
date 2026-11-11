@@ -71,7 +71,9 @@ export function StageTrack({ status, furthestStage, onChange }: Props) {
       </ol>
 
       <div className="stage-footer">
-        <p className={`stage-caption${isClosed ? ' stage-caption-halted' : ''}${isAccepted ? ' stage-caption-accepted' : ''}`}>
+        <p
+          className={`stage-caption${isClosed ? ' stage-caption-halted' : ''}${isAccepted ? ' stage-caption-accepted' : ''}`}
+        >
           {caption(status, furthestStage, isClosed)}
         </p>
         <div className="stage-closers">

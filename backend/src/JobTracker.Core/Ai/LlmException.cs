@@ -19,8 +19,16 @@ public enum LlmFailure
     ProviderError,
 }
 
+/// <summary>
+/// Thrown by <see cref="ILlmClient"/> implementations and the AI services when no usable answer was produced.
+/// <see cref="Failure"/> says why, so callers don't have to parse the message.
+/// </summary>
+/// <param name="failure">Why the call failed.</param>
+/// <param name="message">A message that is safe to show the user.</param>
+/// <param name="innerException">The provider's original error, if any.</param>
 public sealed class LlmException(LlmFailure failure, string message, Exception? innerException = null)
     : Exception(message, innerException)
 {
+    /// <summary>Why the call failed.</summary>
     public LlmFailure Failure { get; } = failure;
 }

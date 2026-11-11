@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using JobTracker.Api;
 using JobTracker.Api.Endpoints;
 using JobTracker.Api.ErrorHandling;
 using JobTracker.Infrastructure;
@@ -59,7 +60,7 @@ using (var scope = app.Services.CreateScope())
         var today = DateOnly.FromDateTime(app.Services.GetRequiredService<TimeProvider>().GetLocalNow().DateTime);
         if (await DemoData.SeedIfEmptyAsync(db, today))
         {
-            app.Logger.LogInformation("Seeded fictional demo data");
+            ApiLog.SeededDemoData(app.Logger);
         }
     }
 }

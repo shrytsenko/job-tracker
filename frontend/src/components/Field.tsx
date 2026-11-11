@@ -64,7 +64,14 @@ interface SelectProps<T extends string> {
 }
 
 /** A <select> over one of the enum arrays from api/types. */
-export function Select<T extends string>({ value, options, onChange, placeholder, formatOption, name }: SelectProps<T>) {
+export function Select<T extends string>({
+  value,
+  options,
+  onChange,
+  placeholder,
+  formatOption,
+  name,
+}: SelectProps<T>) {
   return (
     <select name={name} value={value} onChange={(e) => onChange(e.target.value as T | '')}>
       {placeholder !== undefined && <option value="">{placeholder}</option>}

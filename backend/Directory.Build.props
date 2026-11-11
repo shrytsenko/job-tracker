@@ -4,6 +4,25 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+
+    <!-- Static analysis: the recommended .NET analyzer rules, plus the code-style rules from .editorconfig,
+         all enforced in the build (and so in CI). Warnings are errors above. -->
+    <AnalysisLevel>latest-recommended</AnalysisLevel>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <!-- Needed for the unused-using rule (IDE0005) to run in the build. -->
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <!-- Project-wide choices live here, not in .editorconfig, so they also apply in the Docker build (whose context
+         is this folder and can't see the repository's .editorconfig):
+         CS1573: a record can document some parameters without having to document all of them.
+         CA1859: interface types in signatures are the clearer design; the micro-optimisation doesn't matter here. -->
+    <NoWarn>$(NoWarn);CS1573;CA1859</NoWarn>
+  </PropertyGroup>
+
+  <!-- XML comments (CS1591) are required only in Core: it is the domain and rules API the other projects build on,
+       and its comments show up in IntelliSense there. Elsewhere (endpoints, DTOs, tests) they would mostly repeat
+       the member names, so they are written where they help. -->
+  <PropertyGroup Condition="'$(MSBuildProjectName)' != 'JobTracker.Core'">
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
   </PropertyGroup>
 
 </Project>
