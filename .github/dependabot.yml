@@ -1,5 +1,9 @@
 # Weekly pull requests for outdated or vulnerable dependencies. Minor and patch updates are grouped per
 # ecosystem so there is one PR to review, not one per package; major updates come separately.
+#
+# The project stays on the .NET LTS release (10) and PostgreSQL 17, so their major versions are ignored here.
+# Moving to the next LTS (.NET 12) or a new PostgreSQL major is a planned upgrade: PostgreSQL needs a data
+# migration (pg_upgrade or dump/restore), not just a new image tag.
 version: 2
 updates:
   - package-ecosystem: nuget
@@ -9,6 +13,16 @@ updates:
     groups:
       nuget-minor-and-patch:
         update-types: [minor, patch]
+    ignore:
+      # Versioned with .NET itself; a new major means a new .NET release.
+      - dependency-name: Microsoft.AspNetCore.*
+        update-types: [version-update:semver-major]
+      - dependency-name: Microsoft.EntityFrameworkCore.*
+        update-types: [version-update:semver-major]
+      - dependency-name: Microsoft.Extensions.*
+        update-types: [version-update:semver-major]
+      - dependency-name: Npgsql.*
+        update-types: [version-update:semver-major]
 
   - package-ecosystem: npm
     directory: /frontend
@@ -30,11 +44,17 @@ updates:
     directories: [/backend, /frontend]
     schedule:
       interval: weekly
+    ignore:
+      - dependency-name: dotnet/*
+        update-types: [version-update:semver-major]
 
   - package-ecosystem: docker-compose
     directory: /
     schedule:
       interval: weekly
+    ignore:
+      - dependency-name: postgres
+        update-types: [version-update:semver-major]
 
   - package-ecosystem: github-actions
     directory: /
